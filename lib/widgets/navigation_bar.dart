@@ -17,7 +17,7 @@ class CustomNavigationBar extends StatelessWidget {
 
     return Container(
       width: screenWidth,
-      height: screenHeight * 0.11,
+      height: screenHeight * 0.13,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(
@@ -90,7 +90,8 @@ class CustomNavigationBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Stack(
-              alignment: Alignment.topRight,
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
                 Icon(
                   isActive ? activeIcon : icon,
@@ -99,17 +100,28 @@ class CustomNavigationBar extends StatelessWidget {
                       : Colors.black,
                   size: screenWidth * 0.08,
                 ),
-                // Dot indicator for active item
+                // Dot indicator
                 if (isActive)
                   Positioned(
-                    top: -5,
+                    top: -12,
                     right: 12,
                     child: Container(
-                      width: 8,
-                      height: 9,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFB65E6A),
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB65E6A),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 2,
+                        ),
+                        boxShadow:  [
+                          BoxShadow(
+                            color: Color(0xFFB65E6A).withValues(alpha: 0.4 ),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          )
+                        ]
                       ),
                     ),
                   ),
