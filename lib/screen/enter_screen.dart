@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
 
 // Custom clipper for wave shape
 class WaveClipper extends CustomClipper<Path> {
@@ -249,11 +250,9 @@ class _EnterScreenState extends State<EnterScreen> {
                         onPressed: () {
                           if (_nameController.text.trim().isNotEmpty) {
                             // Navigate to quiz screen
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Welcome, ${_nameController.text}!'),
-                                backgroundColor: const Color(0xFFEE7C9E),
-                              ),
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const HomeScreen()),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
