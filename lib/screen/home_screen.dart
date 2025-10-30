@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/navigation_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -10,7 +11,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 1;
-  String userName = 'Name';
+  String name = 'name';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  Future<void> _loadUsername() async{
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      name = prefs.getString('name')??'name';
+    });
+  }
+
 
   void _onNavTap(int index) {
     setState(() {
@@ -240,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: screenWidth * 0.06,
-                          vertical: screenHeight * 0.0017,
+                          vertical: screenHeight * 0.001,
                         ),
                         child: Container(
                           width: double.infinity,
@@ -283,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      userName,
+                                      name,
                                       style: TextStyle(
                                         color: Colors.black,
                                         fontSize: screenWidth * 0.038,

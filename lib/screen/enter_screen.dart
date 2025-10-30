@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 
-// Custom clipper for wave shape
+
 class WaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -50,6 +51,11 @@ class _EnterScreenState extends State<EnterScreen> {
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveName() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('name', _nameController.text.trim());
   }
 
   @override
@@ -125,7 +131,7 @@ class _EnterScreenState extends State<EnterScreen> {
 
                               SizedBox(height: screenHeight * 0.015),
 
-                              // White circle and image container
+                              // icon quibble
                               Container(
                                 width: screenWidth * 0.5,
                                 height: screenWidth * 0.5,
@@ -159,7 +165,6 @@ class _EnterScreenState extends State<EnterScreen> {
                                   ),
                                 ),
                               ),
-
                               SizedBox(height: screenHeight * 0.008),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.12),
@@ -247,19 +252,21 @@ class _EnterScreenState extends State<EnterScreen> {
                       width: double.infinity,
                       height: screenHeight * 0.056,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_nameController.text.trim().isNotEmpty) {
-                            // Navigate to quiz screen
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HomeScreen()),
-                            );
+                            await _saveName();
+                            if (context.mounted) {
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const HomeScreen())
+                              );
+                            }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please enter your name'),
-                                backgroundColor: Colors.red,
-                              ),
+                                const SnackBar(
+                                  content: Text('Please enter your name'),
+                                  backgroundColor: Color(0xFF6984D0),
+                                )
                             );
                           }
                         },
