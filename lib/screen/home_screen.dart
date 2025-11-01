@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quibble/screen/quiz/quiz_list_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/navigation_bar.dart';
 
@@ -19,6 +20,27 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUsername();
   }
 
+  void _onNavTap(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const QuizListScreen())
+        );
+        break;
+      case 1:
+        break;
+      case 2:
+        break;
+    }
+  }
+
+
+
   Future<void> _loadUsername() async{
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -27,22 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-  void _onNavTap(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
 
-    switch (index) {
-      case 0:
-        debugPrint('Navigate to Quiz');
-        break;
-      case 1:
-        break;
-      case 2:
-        debugPrint('Navigate to Profile');
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
