@@ -21,7 +21,7 @@ class BibleVersesQuestions {
     Question(
         question: 'Yesus Kristus tetap sama, baik kemarin, maupun hari ini dan sampai selama-lamanya ',
         correctAnswer: 'Ibrani 3:8',
-        options: ['Ibrani 13:8', 'Mazmur 16:11', 'Amsal 10:12', '2 Timotius 4:7'],
+        options: ['Ibrani 3:8', 'Mazmur 16:11', 'Amsal 10:12', '2 Timotius 4:7'],
     ),
     Question(
         question: 'Kebencian menimbulkan pertengkaran, tetapi kasih menutupi segala pelanggaran',

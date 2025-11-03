@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:quibble/data/data_bible_character.dart';
+import 'package:quibble/data/data_bible_verse.dart';
 import 'package:quibble/screen/home_screen.dart';
+import 'package:quibble/screen/quiz/quiz_screen.dart';
 import '../../widgets/navigation_bar.dart';
+import '../profile_screen.dart';
 
 class QuizListScreen extends StatefulWidget {
   const QuizListScreen({super.key});
@@ -13,6 +17,8 @@ class _QuizListScreenState extends State<QuizListScreen> {
   int _currentIndex = 0;
 
   void _onNavTap(int index) {
+    if (index == _currentIndex) return;
+
     setState(() {
       _currentIndex = index;
     });
@@ -22,13 +28,15 @@ class _QuizListScreenState extends State<QuizListScreen> {
         break;
       case 1:
         Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen())
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
         break;
       case 2:
-        debugPrint('Navigate to Profile');
-        // TODO: Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        );
         break;
     }
   }
@@ -114,9 +122,20 @@ class _QuizListScreenState extends State<QuizListScreen> {
                             imagePath: 'assets/images/biblechara.png',
                             screenWidth: screenWidth,
                             screenHeight: screenHeight,
-                            onTap: () {
-                              debugPrint('Bible Characters tapped');
-                            },
+                          onTap:
+                              () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        QuizQuestionScreen(
+                                          category: 'Bible Characters',
+                                          questions: BibleCharactersQuestions
+                                              .questions,
+                                        ),
+                                  ),
+                                );
+                              }
                           ),
 
                           SizedBox(height: screenHeight * 0.02),
@@ -127,9 +146,20 @@ class _QuizListScreenState extends State<QuizListScreen> {
                             imagePath: 'assets/images/bibleverse.png',
                             screenHeight: screenHeight,
                             screenWidth: screenWidth,
-                            onTap: () {
-                              debugPrint('Bible Verses tapped');
-                            },
+                              onTap:
+                                  () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        QuizQuestionScreen(
+                                          category: 'Bible Verses',
+                                          questions: BibleVersesQuestions
+                                              .questions,
+                                        ),
+                                  ),
+                                );
+                            }
                           ),
 
                           SizedBox(height: screenHeight * 0.02),
