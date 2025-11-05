@@ -1,24 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:quibble/screen/home_screen.dart';
+import 'package:quibble/screen/quiz/quiz_list_screen.dart';
+import 'package:quibble/screen/profile_screen.dart';
 
 class CustomNavigationBar extends StatelessWidget {
   final int currentIndex;
-  final Function(int) onTap;
+  final VoidCallback? onNavigationComplete;
 
   const CustomNavigationBar({
     super.key,
     required this.currentIndex,
-    required this.onTap,
+    this.onNavigationComplete,
   });
 
+  void _handleNavigation(BuildContext context, int index) {
+    if (index == currentIndex) return;
+
+    // Callback sebelum navigasi (untuk refresh data jika diperlukan)
+    onNavigationComplete?.call();
+
+    Widget destination;
+    switch (index) {
+      case 0:
+        destination = const QuizListScreen();
+        break;
+      case 1:
+        destination = const HomeScreen();
+        break;
+      case 2:
+        destination = const ProfileScreen();
+        break;
+      default:
+        return;
+    }
+
+    // Gunakan pushReplacement untuk halaman utama agar tidak menumpuk
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => destination),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    // FIXED: Tinggi konsisten untuk semua orientasi
+    final navHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
 
     return Container(
       width: screenWidth,
-      height: screenHeight * 0.13,
+      height: navHeight,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(
@@ -43,6 +77,7 @@ class CustomNavigationBar extends StatelessWidget {
             index: 0,
             screenWidth: screenWidth,
             screenHeight: screenHeight,
+            isLandscape: isLandscape,
           ),
           _buildNavItem(
             context: context,
@@ -52,6 +87,7 @@ class CustomNavigationBar extends StatelessWidget {
             index: 1,
             screenWidth: screenWidth,
             screenHeight: screenHeight,
+            isLandscape: isLandscape,
           ),
           _buildNavItem(
             context: context,
@@ -61,6 +97,7 @@ class CustomNavigationBar extends StatelessWidget {
             index: 2,
             screenWidth: screenWidth,
             screenHeight: screenHeight,
+            isLandscape: isLandscape,
           ),
         ],
       ),
@@ -75,11 +112,14 @@ class CustomNavigationBar extends StatelessWidget {
     required int index,
     required double screenWidth,
     required double screenHeight,
+    required bool isLandscape,
   }) {
     final isActive = currentIndex == index;
+    final iconSize = isLandscape ? screenHeight * 0.065 : screenWidth * 0.07;
+    final fontSize = isLandscape ? screenHeight * 0.035 : screenWidth * 0.032;
 
     return GestureDetector(
-      onTap: () => onTap(index),
+      onTap: () => _handleNavigation(context, index),
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -96,19 +136,17 @@ class CustomNavigationBar extends StatelessWidget {
               children: [
                 Icon(
                   isActive ? activeIcon : icon,
-                  color: isActive
-                      ? const Color(0xFFB65E6A)
-                      : Colors.black,
-                  size: screenWidth * 0.08,
+                  color: isActive ? const Color(0xFFB65E6A) : Colors.black,
+                  size: iconSize,
                 ),
                 // Dot indicator
                 if (isActive)
                   Positioned(
-                    top: -12,
-                    right: 12,
+                    top: -8,
+                    right: 8,
                     child: Container(
-                      width: 12,
-                      height: 12,
+                      width: 10,
+                      height: 10,
                       decoration: BoxDecoration(
                         color: const Color(0xFFB65E6A),
                         shape: BoxShape.circle,
@@ -116,26 +154,24 @@ class CustomNavigationBar extends StatelessWidget {
                           color: Colors.white,
                           width: 2,
                         ),
-                        boxShadow:  [
+                        boxShadow: [
                           BoxShadow(
-                            color: Color(0xFFB65E6A).withValues(alpha: 0.4 ),
+                            color: const Color(0xFFB65E6A).withValues(alpha: 0.4),
                             blurRadius: 4,
                             spreadRadius: 1,
                           )
-                        ]
+                        ],
                       ),
                     ),
                   ),
               ],
             ),
-            SizedBox(height: screenHeight * 0.005),
+            SizedBox(height: screenHeight * 0.004),
             Text(
               label,
               style: TextStyle(
-                color: isActive
-                    ? const Color(0xFFB65E6A)
-                    : Colors.black,
-                fontSize: screenWidth * 0.037,
+                color: isActive ? const Color(0xFFB65E6A) : Colors.black,
+                fontSize: fontSize,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w700,
               ),
