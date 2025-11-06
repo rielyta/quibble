@@ -21,39 +21,57 @@ class ResultScreen extends StatefulWidget {
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
-class _ResultScreenState extends State<ResultScreen> {
+class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
   bool _leveledUp = false;
   LevelData? _newLevel;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
+
+    _animationController.forward();
     _saveStatsAndCheckLevelUp();
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveStatsAndCheckLevelUp() async {
-    // Get old stats
     final oldStats = await QuizStatsService.loadStats();
     final oldXP = oldStats.totalXP;
 
-    // Update stats
     await QuizStatsService.updateStatsAfterQuiz(
       correctAnswers: widget.correctAnswers,
       totalQuestions: widget.totalQuestions,
     );
 
-    // Get new stats
     final newStats = await QuizStatsService.loadStats();
     final newXP = newStats.totalXP;
 
-    // Check if leveled up
     if (LevelSystem.checkLevelUp(oldXP, newXP)) {
       setState(() {
         _leveledUp = true;
         _newLevel = LevelSystem.getCurrentLevel(newXP);
       });
 
-      // Show level up dialog after a short delay
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted && _newLevel != null) {
           showDialog(
@@ -71,72 +89,37 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final orientation = MediaQuery.of(context).orientation;
-    final isLandscape = orientation == Orientation.landscape;
     final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+    final size = MediaQuery.of(context).size;
+    final isLandscape = size.width > size.height;
 
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          width: screenWidth,
-          height: screenHeight,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDarkMode
-                  ? [
-                const Color(0xFF1A1A1A),
-                const Color(0xFF2D2D2D),
-                const Color(0xFF3D3D3D),
-              ]
-                  : [
-                const Color(0xFFFFF8E7),
-                const Color(0xFFFFE19E),
-                const Color(0xFFFFD180),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Decorative circles in background
-              Positioned(
-                top: isLandscape ? -60 : -50,
-                right: isLandscape ? -60 : -50,
-                child: Container(
-                  width: isLandscape ? 200.0 : 150.0,
-                  height: isLandscape ? 200.0 : 150.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDarkMode
-                        ? Colors.white.withValues(alpha: 0.03)
-                        : Colors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: isLandscape ? 100 : 80,
-                left: isLandscape ? -30 : -20,
-                child: Container(
-                  width: isLandscape ? 150.0 : 120.0,
-                  height: isLandscape ? 150.0 : 120.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDarkMode
-                        ? Colors.white.withValues(alpha: 0.03)
-                        : Colors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-
-              // Main content
-              isLandscape
-                  ? _buildLandscapeLayout(isDarkMode)
-                  : _buildPortraitLayout(isDarkMode),
+      body: Container(
+        width: size.width,
+        height: size.height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDarkMode
+                ? [
+              const Color(0xFF0F0F0F),
+              const Color(0xFF1A1A2E),
+              const Color(0xFF16213E),
+            ]
+                : [
+              const Color(0xFFFFF4E6),
+              const Color(0xFFFFE5CC),
+              const Color(0xFFFFDAB3),
             ],
+          ),
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: isLandscape
+                ? _buildLandscapeLayout(isDarkMode)
+                : _buildPortraitLayout(isDarkMode),
           ),
         ),
       ),
@@ -144,240 +127,399 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildPortraitLayout(bool isDarkMode) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final size = MediaQuery.of(context).size;
     final wrongAnswers = widget.totalQuestions - widget.correctAnswers;
     final score = ((widget.correctAnswers / widget.totalQuestions) * 100).round();
     final earnedXP = widget.correctAnswers * 10;
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.08,
-          vertical: screenHeight * 0.03,
-        ),
-        child: Column(
-          children: [
-            SizedBox(height: screenHeight * 0.02),
-
-            // Title with Icon
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(
+            horizontal: size.width * 0.05,
+            vertical: size.height * 0.02,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFEE7C9E).withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.assessment,
-                    color: Colors.white,
-                    size: 32,
-                  ),
+                SizedBox(height: size.height * 0.01),
+
+                // Animated Header
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildHeader(isDarkMode, false),
                 ),
-                const SizedBox(width: 16),
-                Text(
-                  'Quiz Result',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : const Color(0xFF5D4037),
-                    fontSize: screenWidth * 0.07,
-                    fontFamily: 'SF Pro',
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+
+                SizedBox(height: size.height * 0.025),
+
+                // Main Score Display
+                _buildMainScoreCard(score, isDarkMode, false),
+
+                SizedBox(height: size.height * 0.02),
+
+                // XP Badge
+                _buildXPBadge(earnedXP, isDarkMode, false),
+
+                SizedBox(height: size.height * 0.02),
+
+                // Stats Row
+                _buildStatsRow(wrongAnswers, isDarkMode, false),
+
+                SizedBox(height: size.height * 0.025),
+
+                // Action Buttons
+                _buildActionButtons(isDarkMode, false),
+
+                SizedBox(height: size.height * 0.02),
               ],
             ),
-
-            SizedBox(height: screenHeight * 0.04),
-
-            // XP Earned Badge
-            _buildXPBadge(earnedXP, isDarkMode, false),
-
-            SizedBox(height: screenHeight * 0.03),
-
-            // Stats Row
-            _buildStatsRow(wrongAnswers, isDarkMode, false),
-
-            SizedBox(height: screenHeight * 0.03),
-
-            // Score Card
-            _buildScoreCard(score, isDarkMode, false),
-
-            SizedBox(height: screenHeight * 0.03),
-
-            // Action Buttons
-            _buildActionButtons(false),
-
-            SizedBox(height: screenHeight * 0.02),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildLandscapeLayout(bool isDarkMode) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final size = MediaQuery.of(context).size;
     final wrongAnswers = widget.totalQuestions - widget.correctAnswers;
     final score = ((widget.correctAnswers / widget.totalQuestions) * 100).round();
     final earnedXP = widget.correctAnswers * 10;
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.06,
-          vertical: screenHeight * 0.04,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(
+            horizontal: size.width * 0.04,
+            vertical: size.height * 0.03,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildHeader(isDarkMode, true),
+                ),
+
+                SizedBox(height: size.height * 0.02),
+
+                // Main Content Row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left Column - Score
+                    Expanded(
+                      flex: 4,
+                      child: _buildMainScoreCard(score, isDarkMode, true),
+                    ),
+
+                    SizedBox(width: size.width * 0.02),
+
+                    // Right Column - Stats & Actions
+                    Expanded(
+                      flex: 6,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildXPBadge(earnedXP, isDarkMode, true),
+                          SizedBox(height: size.height * 0.015),
+                          _buildStatsRow(wrongAnswers, isDarkMode, true),
+                          SizedBox(height: size.height * 0.02),
+                          _buildActionButtons(isDarkMode, true),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: size.height * 0.02),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader(bool isDarkMode, bool isLandscape) {
+    final size = MediaQuery.of(context).size;
+    final iconSize = isLandscape ? size.height * 0.07 : size.width * 0.1;
+    final titleSize = isLandscape ? size.height * 0.06 : size.width * 0.065;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: size.width * 0.04,
+        vertical: isLandscape ? size.height * 0.015 : size.height * 0.012,
+      ),
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? Colors.white.withOpacity(0.05)
+            : Colors.white.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white.withOpacity(0.1)
+              : Colors.white.withOpacity(0.5),
+          width: 1.5,
         ),
-        child: Column(
-          children: [
-            // Title
-            Row(
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(iconSize * 0.2),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFEE7C9E).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.emoji_events_rounded,
+              color: Colors.white,
+              size: iconSize * 0.7,
+            ),
+          ),
+          SizedBox(width: size.width * 0.025),
+          Flexible(
+            child: Text(
+              'Quiz Complete!',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : const Color(0xFF2D3436),
+                fontSize: titleSize,
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainScoreCard(int score, bool isDarkMode, bool isLandscape) {
+    final size = MediaQuery.of(context).size;
+    final circleSize = isLandscape ? size.height * 0.25 : size.width * 0.38;
+    final scoreSize = isLandscape ? size.height * 0.15 : size.width * 0.18;
+
+    List<Color> scoreGradient;
+    IconData scoreIcon;
+    String scoreLabel;
+
+    if (score >= 80) {
+      scoreGradient = const [Color(0xFFEE7C9E), Color(0xFFF295B0)];
+      scoreIcon = Icons.celebration_rounded;
+      scoreLabel = 'Excellent!';
+    } else if (score >= 60) {
+      scoreGradient = const [Color(0xFF8F9ABA), Color(0xFFA5B0CD)];
+      scoreIcon = Icons.thumb_up_rounded;
+      scoreLabel = 'Good Job!';
+    } else {
+      scoreGradient = const [Color(0xFFFFE29E), Color(0xFFFFEDB8)];
+      scoreIcon = Icons.self_improvement_rounded;
+      scoreLabel = 'Keep Going!';
+    }
+
+    return Container(
+      padding: EdgeInsets.all(isLandscape ? size.height * 0.03 : size.width * 0.05),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: scoreGradient,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: scoreGradient[0].withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Score Label
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  'Your Score',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.95),
+                    fontSize: isLandscape ? size.height * 0.045 : size.width * 0.042,
+                    fontFamily: 'SF Pro',
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                scoreIcon,
+                color: Colors.white,
+                size: isLandscape ? size.height * 0.055 : size.width * 0.07,
+              ),
+            ],
+          ),
+
+          SizedBox(height: isLandscape ? size.height * 0.015 : size.height * 0.012),
+
+          // Score Circle
+          Container(
+            width: circleSize,
+            height: circleSize,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFEE7C9E).withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.assessment,
-                    color: Colors.white,
-                    size: screenHeight * 0.08,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Text(
-                  'Quiz Result',
+                  '$score',
                   style: TextStyle(
-                    color: isDarkMode ? Colors.white : const Color(0xFF5D4037),
-                    fontSize: screenHeight * 0.08,
+                    foreground: Paint()
+                      ..shader = LinearGradient(
+                        colors: scoreGradient,
+                      ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
+                    fontSize: scoreSize,
                     fontFamily: 'SF Pro',
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                  ),
+                ),
+                Text(
+                  '%',
+                  style: TextStyle(
+                    foreground: Paint()
+                      ..shader = LinearGradient(
+                        colors: scoreGradient,
+                      ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
+                    fontSize: scoreSize * 0.4,
+                    fontFamily: 'SF Pro',
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
+          ),
 
-            SizedBox(height: screenHeight * 0.03),
+          SizedBox(height: isLandscape ? size.height * 0.015 : size.height * 0.012),
 
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Column
-                Expanded(
-                  flex: 5,
-                  child: Column(
-                    children: [
-                      _buildXPBadge(earnedXP, isDarkMode, true),
-                      SizedBox(height: screenHeight * 0.03),
-                      _buildStatsRow(wrongAnswers, isDarkMode, true),
-                    ],
-                  ),
-                ),
-
-                SizedBox(width: screenWidth * 0.04),
-
-                // Right Column
-                Expanded(
-                  flex: 5,
-                  child: Column(
-                    children: [
-                      _buildScoreCard(score, isDarkMode, true),
-                      SizedBox(height: screenHeight * 0.03),
-                      _buildActionButtons(true),
-                    ],
-                  ),
-                ),
-              ],
+          // Score Message
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: size.width * 0.03,
+              vertical: size.height * 0.008,
             ),
-
-            SizedBox(height: screenHeight * 0.02),
-          ],
-        ),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              scoreLabel,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isLandscape ? size.height * 0.04 : size.width * 0.04,
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildXPBadge(int earnedXP, bool isDarkMode, bool isLandscape) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final size = MediaQuery.of(context).size;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isLandscape ? screenWidth * 0.04 : screenWidth * 0.06,
-        vertical: isLandscape ? screenHeight * 0.025 : screenHeight * 0.02,
-      ),
+      width: double.infinity,
+      padding: EdgeInsets.all(isLandscape ? size.height * 0.025 : size.width * 0.04),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFB74D), Color(0xFFFFA726)],
-        ),
-        borderRadius: BorderRadius.circular(24),
+        color: Color(0xFFEFBB4B),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFB74D).withValues(alpha: 0.4),
+            color: const Color(0xFFFFE29E).withOpacity(0.4),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.bolt,
-            color: Colors.white,
-            size: 32,
+          Container(
+            padding: EdgeInsets.all(size.width * 0.015),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.25),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.bolt_rounded,
+              color: Colors.white,
+              size: isLandscape ? size.height * 0.055 : size.width * 0.07,
+            ),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '+$earnedXP XP',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: isLandscape ? screenHeight * 0.08 : screenWidth * 0.08,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w900,
-                  height: 1.0,
+          SizedBox(width: size.width * 0.025),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '+$earnedXP XP',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isLandscape ? size.height * 0.06 : size.width * 0.065,
+                    fontFamily: 'SF Pro',
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                  ),
                 ),
-              ),
-              Text(
-                'Experience Earned!',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  fontSize: isLandscape ? screenHeight * 0.04 : screenWidth * 0.038,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w600,
+                Text(
+                  'Experience Earned!',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: isLandscape ? size.height * 0.035 : size.width * 0.033,
+                    fontFamily: 'SF Pro',
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -385,28 +527,27 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildStatsRow(int wrongAnswers, bool isDarkMode, bool isLandscape) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final size = MediaQuery.of(context).size;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(
-          child: _buildStatBox(
-            icon: Icons.check_circle,
+          child: _buildStatCard(
+            icon: Icons.check_circle_rounded,
             label: 'Correct',
             value: widget.correctAnswers,
-            gradientColors: const [Color(0xFF59A855), Color(0xFF66BB6A)],
+            gradientColors: const [Color(0xFFEE7C9E), Color(0xFFF295B0)],
             isDarkMode: isDarkMode,
             isLandscape: isLandscape,
           ),
         ),
-        SizedBox(width: isLandscape ? screenWidth * 0.02 : screenWidth * 0.04),
+        SizedBox(width: isLandscape ? size.width * 0.015 : size.width * 0.025),
         Expanded(
-          child: _buildStatBox(
-            icon: Icons.cancel,
+          child: _buildStatCard(
+            icon: Icons.cancel_rounded,
             label: 'Wrong',
             value: wrongAnswers,
-            gradientColors: const [Color(0xFFF5405B), Color(0xFFEF5350)],
+            gradientColors: const [Color(0xFF8F9ABA), Color(0xFFA5B0CD)],
             isDarkMode: isDarkMode,
             isLandscape: isLandscape,
           ),
@@ -415,7 +556,7 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildStatBox({
+  Widget _buildStatCard({
     required IconData icon,
     required String label,
     required int value,
@@ -423,62 +564,71 @@ class _ResultScreenState extends State<ResultScreen> {
     required bool isDarkMode,
     required bool isLandscape,
   }) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final size = MediaQuery.of(context).size;
 
     return Container(
-      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.03 : screenWidth * 0.04),
+      padding: EdgeInsets.all(isLandscape ? size.height * 0.02 : size.width * 0.035),
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: isDarkMode
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white.withOpacity(0.1)
+              : Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.08),
+            color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(isLandscape ? screenHeight * 0.02 : screenWidth * 0.03),
+            padding: EdgeInsets.all(isLandscape ? size.height * 0.015 : size.width * 0.025),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: gradientColors,
-              ),
-              shape: BoxShape.circle,
+              gradient: LinearGradient(colors: gradientColors),
+              borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: gradientColors[0].withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+                  color: gradientColors[0].withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Icon(
               icon,
               color: Colors.white,
-              size: isLandscape ? screenHeight * 0.06 : screenWidth * 0.08,
+              size: isLandscape ? size.height * 0.05 : size.width * 0.065,
             ),
           ),
-          SizedBox(height: isLandscape ? screenHeight * 0.015 : screenHeight * 0.01),
+          SizedBox(height: isLandscape ? size.height * 0.01 : size.height * 0.008),
           Text(
             '$value',
             style: TextStyle(
-              color: gradientColors[0],
-              fontSize: isLandscape ? screenHeight * 0.1 : screenWidth * 0.12,
+              foreground: Paint()
+                ..shader = LinearGradient(
+                  colors: gradientColors,
+                ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
+              fontSize: isLandscape ? size.height * 0.08 : size.width * 0.095,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w900,
               height: 1.0,
             ),
           ),
-          SizedBox(height: isLandscape ? screenHeight * 0.008 : screenHeight * 0.005),
+          SizedBox(height: size.height * 0.003),
           Text(
             label,
             style: TextStyle(
-              color: isDarkMode ? Colors.white70 : const Color(0xFF8D6E63),
-              fontSize: isLandscape ? screenHeight * 0.04 : screenWidth * 0.04,
+              color: isDarkMode ? Colors.white70 : const Color(0xFF636E72),
+              fontSize: isLandscape ? size.height * 0.035 : size.width * 0.035,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w600,
             ),
@@ -488,191 +638,62 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildScoreCard(int score, bool isDarkMode, bool isLandscape) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    // Determine color based on score
-    List<Color> scoreGradient;
-    if (score >= 80) {
-      scoreGradient = const [Color(0xFF59A855), Color(0xFF66BB6A)]; // Green
-    } else if (score >= 60) {
-      scoreGradient = const [Color(0xFFFFB74D), Color(0xFFFFA726)]; // Orange
-    } else {
-      scoreGradient = const [Color(0xFFF5405B), Color(0xFFEF5350)]; // Red
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.04 : screenWidth * 0.06),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFEE7C9E),
-            const Color(0xFFF295B0),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFEE7C9E).withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Final Score',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  fontSize: isLandscape ? screenHeight * 0.05 : screenWidth * 0.045,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Icon(
-                score >= 80 ? Icons.emoji_events : (score >= 60 ? Icons.star : Icons.trending_up),
-                color: Colors.white,
-                size: isLandscape ? screenHeight * 0.06 : screenWidth * 0.07,
-              ),
-            ],
-          ),
-          SizedBox(height: isLandscape ? screenHeight * 0.03 : screenHeight * 0.02),
-
-          // Score Circle
-          Container(
-            width: isLandscape ? screenHeight * 0.35 : screenWidth * 0.45,
-            height: isLandscape ? screenHeight * 0.35 : screenWidth * 0.45,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '$score',
-                    style: TextStyle(
-                      color: scoreGradient[0],
-                      fontSize: isLandscape ? screenHeight * 0.15 : screenWidth * 0.18,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w900,
-                      height: 1.0,
-                    ),
-                  ),
-                  Text(
-                    '%',
-                    style: TextStyle(
-                      color: scoreGradient[0],
-                      fontSize: isLandscape ? screenHeight * 0.07 : screenWidth * 0.08,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          SizedBox(height: isLandscape ? screenHeight * 0.025 : screenHeight * 0.02),
-
-          // Score Message
-          Text(
-            _getScoreMessage(score),
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.04,
-              fontFamily: 'SF Pro',
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getScoreMessage(int score) {
-    if (score == 100) return '🎉 Perfect Score!';
-    if (score >= 90) return '🌟 Excellent Work!';
-    if (score >= 80) return '💪 Great Job!';
-    if (score >= 70) return '👍 Good Effort!';
-    if (score >= 60) return '📚 Keep Learning!';
-    return '💡 Practice More!';
-  }
-
-  Widget _buildActionButtons(bool isLandscape) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  Widget _buildActionButtons(bool isDarkMode, bool isLandscape) {
+    final size = MediaQuery.of(context).size;
+    final buttonHeight = isLandscape ? size.height * 0.11 : 52.0;
 
     if (isLandscape) {
       return Row(
         children: [
-          Expanded(
-            child: _buildRetryButton(isLandscape),
-          ),
-          SizedBox(width: screenWidth * 0.02),
-          Expanded(
-            child: _buildHomeButton(isLandscape),
-          ),
+          Expanded(child: _buildHomeButton(isDarkMode, isLandscape, buttonHeight)),
+          SizedBox(width: size.width * 0.015),
+          Expanded(child: _buildRetryButton(isDarkMode, isLandscape, buttonHeight)),
         ],
       );
     }
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _buildHomeButton(isLandscape),
-        SizedBox(height: screenHeight * 0.015),
-        _buildRetryButton(isLandscape),
+        _buildHomeButton(isDarkMode, isLandscape, buttonHeight),
+        SizedBox(height: size.height * 0.012),
+        _buildRetryButton(isDarkMode, isLandscape, buttonHeight),
       ],
     );
   }
 
-  Widget _buildHomeButton(bool isLandscape) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  Widget _buildHomeButton(bool isDarkMode, bool isLandscape, double height) {
+    final size = MediaQuery.of(context).size;
+    final fontSize = isLandscape ? size.height * 0.04 : 16.5;
 
     return SizedBox(
-      width: double.infinity,
-      height: isLandscape ? screenHeight * 0.12 : 50,
+      height: height,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.popUntil(context, (route) => route.isFirst);
-        },
+        onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF8F9ABA),
           foregroundColor: Colors.white,
-          elevation: 5,
-          shadowColor: const Color(0xFF8F9ABA).withValues(alpha: 0.4),
+          elevation: 4,
+          shadowColor: const Color(0xFF8F9ABA).withOpacity(0.4),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.home, size: 24),
-            const SizedBox(width: 12),
-            Text(
-              'Back to Home',
-              style: TextStyle(
-                fontSize: isLandscape ? screenHeight * 0.05 : 18,
-                fontFamily: 'SF Pro',
-                fontWeight: FontWeight.w700,
+            Icon(Icons.home_rounded, size: fontSize * 1.25),
+            SizedBox(width: size.width * 0.015),
+            Flexible(
+              child: Text(
+                'Back to Home',
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -681,38 +702,43 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildRetryButton(bool isLandscape) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  Widget _buildRetryButton(bool isDarkMode, bool isLandscape, double height) {
+    final size = MediaQuery.of(context).size;
+    final fontSize = isLandscape ? size.height * 0.04 : 16.5;
 
     return SizedBox(
-      width: double.infinity,
-      height: isLandscape ? screenHeight * 0.12 : 50,
+      height: height,
       child: OutlinedButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
+        onPressed: () => Navigator.pop(context),
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFEE7C9E),
-          side: const BorderSide(
-            color: Color(0xFFEE7C9E),
-            width: 2,
+          foregroundColor: isDarkMode
+              ? const Color(0xFF6C5CE7)
+              : const Color(0xFF0984E3),
+          side: BorderSide(
+            color: isDarkMode
+                ? const Color(0xFF6C5CE7)
+                : const Color(0xFF0984E3),
+            width: 2.5,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.refresh, size: 24),
-            const SizedBox(width: 12),
-            Text(
-              'Try Again',
-              style: TextStyle(
-                fontSize: isLandscape ? screenHeight * 0.05 : 18,
-                fontFamily: 'SF Pro',
-                fontWeight: FontWeight.w700,
+            Icon(Icons.refresh_rounded, size: fontSize * 1.25),
+            SizedBox(width: size.width * 0.015),
+            Flexible(
+              child: Text(
+                'Try Again',
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

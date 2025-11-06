@@ -15,10 +15,10 @@ class CustomNavigationBar extends StatelessWidget {
     this.onNavigationComplete,
   });
 
-  void _handleNavigation(BuildContext context, int index) {
+  void _handleNavigation(BuildContext context, int index) async {
     if (index == currentIndex) return;
 
-    onNavigationComplete?.call();
+    Future.microtask(() => onNavigationComplete?.call());
 
     Widget destination;
     switch (index) {
@@ -35,12 +35,24 @@ class CustomNavigationBar extends StatelessWidget {
         return;
     }
 
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    if (!context.mounted) return;
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => destination),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => destination,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;

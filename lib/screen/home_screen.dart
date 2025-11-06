@@ -26,31 +26,50 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      isLoading = true;
-    });
+    try {
+      // Jalankan loading secara parallel
+      final results = await Future.wait([
+        _loadUsername(),
+        _loadStats(),
+      ]);
 
-    await _loadUsername();
-    await _loadStats();
-
-    setState(() {
-      isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading data: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadUsername() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      name = prefs.getString('name') ?? 'name';
-    });
+    final loadedName = prefs.getString('name') ?? 'name';
+    if (mounted) {
+      setState(() {
+        name = loadedName;
+      });
+    }
   }
 
   Future<void> _loadStats() async {
     final loadedStats = await QuizStatsService.loadStats();
-    setState(() {
-      stats = loadedStats;
-    });
+    if (mounted) {
+      setState(() {
+        stats = loadedStats;
+      });
+    }
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Color(0xFFFFF8E7),
                 const Color(0xFFFFE19E),
               ],
-              stops: const [0.3, 1.0],
+              stops: const [0.3, 0.5],
             ),
           ),
           child: Stack(
@@ -123,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         SizedBox(height: screenHeight * 0.03),
 
-        // Header with greeting
+        // Header
         Padding(
           padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
           child: Row(
@@ -181,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         SizedBox(height: screenHeight * 0.03),
 
-        // Level Card (NEW!)
+        // Level Card
         _buildLevelCard(screenWidth, screenHeight, false, isDarkMode),
 
         SizedBox(height: screenHeight * 0.025),
@@ -404,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             isMaxLevel
                 ? '🎉 Max Level Reached!'
-                : 'Next: ${nextLevel?.title} • $xpToNext XP to go',
+                : 'Next: ${nextLevel.title} • $xpToNext XP to go',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.032,

@@ -49,7 +49,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final double() = MediaQuery.of(context).size.height;
 
     return Dialog(
       backgroundColor: Colors.transparent,
