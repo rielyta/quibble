@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:quibble/screen/quiz/result_screen.dart';
 import '../../model/question_model.dart';
 import '../../widgets/result_dialog.dart';
+import '../../provider/theme_provider.dart';
 
 class QuizQuestionScreen extends StatefulWidget {
   final String category;
@@ -75,8 +77,10 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFFEAB9),
+      backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFFFEAB9),
       body: SafeArea(
         child: OrientationBuilder(
           builder: (context, orientation) {
@@ -87,8 +91,8 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
                 final screenHeight = constraints.maxHeight;
 
                 return isLandscape
-                    ? _buildLandscapeLayout(screenWidth, screenHeight)
-                    : _buildPortraitLayout(screenWidth, screenHeight);
+                    ? _buildLandscapeLayout(screenWidth, screenHeight, isDarkMode)
+                    : _buildPortraitLayout(screenWidth, screenHeight, isDarkMode);
               },
             );
           },
@@ -97,7 +101,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildPortraitLayout(double screenWidth, double screenHeight) {
+  Widget _buildPortraitLayout(double screenWidth, double screenHeight, bool isDarkMode) {
     final currentQuestion = widget.questions[currentQuestionIndex];
 
     return SingleChildScrollView(
@@ -107,13 +111,13 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: screenHeight * 0.04),
-            _buildHeader(screenWidth),
+            _buildHeader(screenWidth, isDarkMode),
             SizedBox(height: screenHeight * 0.02),
             _buildProgressBar(),
             SizedBox(height: screenHeight * 0.03),
-            _buildQuestionBox(currentQuestion, screenWidth),
+            _buildQuestionBox(currentQuestion, screenWidth, isDarkMode),
             SizedBox(height: screenHeight * 0.03),
-            _buildAnswerOptions(currentQuestion, screenWidth),
+            _buildAnswerOptions(currentQuestion, screenWidth, isDarkMode),
             SizedBox(height: screenHeight * 0.02),
             _buildSubmitButton(screenWidth, screenHeight),
             SizedBox(height: screenHeight * 0.04),
@@ -123,7 +127,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildLandscapeLayout(double screenWidth, double screenHeight) {
+  Widget _buildLandscapeLayout(double screenWidth, double screenHeight, bool isDarkMode) {
     final currentQuestion = widget.questions[currentQuestionIndex];
 
     return Row(
@@ -137,11 +141,11 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(screenWidth * 0.5),
+                  _buildHeader(screenWidth * 0.5, isDarkMode),
                   SizedBox(height: screenHeight * 0.03),
                   _buildProgressBar(),
                   SizedBox(height: screenHeight * 0.04),
-                  _buildQuestionBox(currentQuestion, screenWidth * 0.5),
+                  _buildQuestionBox(currentQuestion, screenWidth * 0.5, isDarkMode),
                 ],
               ),
             ),
@@ -158,7 +162,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: screenHeight * 0.02),
-                  _buildAnswerOptions(currentQuestion, screenWidth * 0.4),
+                  _buildAnswerOptions(currentQuestion, screenWidth * 0.4, isDarkMode),
                   SizedBox(height: screenHeight * 0.03),
                   _buildSubmitButton(screenWidth * 0.4, screenHeight),
                 ],
@@ -170,19 +174,23 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildHeader(double screenWidth) {
+  Widget _buildHeader(double screenWidth, bool isDarkMode) {
     return Row(
       children: [
         IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back, size: screenWidth * 0.06),
+          icon: Icon(
+            Icons.arrow_back,
+            size: screenWidth * 0.06,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             widget.category,
             style: TextStyle(
-              color: Colors.black,
+              color: isDarkMode ? Colors.white : Colors.black,
               fontSize: screenWidth * 0.047,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w700,
@@ -192,7 +200,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
         Text(
           '${currentQuestionIndex + 1}/${widget.questions.length}',
           style: TextStyle(
-            color: Colors.black,
+            color: isDarkMode ? Colors.white70 : Colors.black,
             fontSize: screenWidth * 0.035,
             fontFamily: 'SF Pro',
             fontWeight: FontWeight.w600,
@@ -207,7 +215,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
       width: double.infinity,
       height: 16,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(11),
       ),
       child: FractionallySizedBox(
@@ -223,12 +231,12 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildQuestionBox(Question currentQuestion, double screenWidth) {
+  Widget _buildQuestionBox(Question currentQuestion, double screenWidth, bool isDarkMode) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
         border: Border.all(
           width: 3,
           color: const Color(0xFF8F9ABA),
@@ -238,7 +246,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
       child: Text(
         currentQuestion.question,
         style: TextStyle(
-          color: Colors.black,
+          color: isDarkMode ? Colors.white : Colors.black,
           fontSize: screenWidth * 0.035,
           fontFamily: 'SF Pro',
           fontWeight: FontWeight.w700,
@@ -248,7 +256,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildAnswerOptions(Question currentQuestion, double screenWidth) {
+  Widget _buildAnswerOptions(Question currentQuestion, double screenWidth, bool isDarkMode) {
     return Column(
       children: currentQuestion.options.map((option) {
         final isSelected = selectedAnswer == option;
@@ -269,7 +277,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFFEE7C9E)
-                    : const Color(0xFFFFFFFF),
+                    : (isDarkMode ? const Color(0xFF2D2D2D) : const Color(0xFFFFFFFF)),
                 border: Border.all(
                   width: 3,
                   color: const Color(0xFFEE7C9E),
@@ -279,7 +287,9 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
               child: Text(
                 option,
                 style: TextStyle(
-                  color: Colors.black,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDarkMode ? Colors.white : Colors.black),
                   fontSize: screenWidth * 0.035,
                   fontFamily: 'SF Pro',
                   fontWeight: FontWeight.w700,

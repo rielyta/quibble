@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:quibble/screen/home_screen.dart';
 import 'package:quibble/screen/quiz/quiz_list_screen.dart';
 import 'package:quibble/screen/profile_screen.dart';
+import '../provider/theme_provider.dart';
 
 class CustomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -16,7 +18,6 @@ class CustomNavigationBar extends StatelessWidget {
   void _handleNavigation(BuildContext context, int index) {
     if (index == currentIndex) return;
 
-    // Callback sebelum navigasi (untuk refresh data jika diperlukan)
     onNavigationComplete?.call();
 
     Widget destination;
@@ -34,7 +35,6 @@ class CustomNavigationBar extends StatelessWidget {
         return;
     }
 
-    // Gunakan pushReplacement untuk halaman utama agar tidak menumpuk
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => destination),
@@ -46,21 +46,21 @@ class CustomNavigationBar extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
 
-    // FIXED: Tinggi konsisten untuk semua orientasi
     final navHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
 
     return Container(
       width: screenWidth,
       height: navHeight,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(14),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -78,6 +78,7 @@ class CustomNavigationBar extends StatelessWidget {
             screenWidth: screenWidth,
             screenHeight: screenHeight,
             isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
           ),
           _buildNavItem(
             context: context,
@@ -88,6 +89,7 @@ class CustomNavigationBar extends StatelessWidget {
             screenWidth: screenWidth,
             screenHeight: screenHeight,
             isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
           ),
           _buildNavItem(
             context: context,
@@ -98,6 +100,7 @@ class CustomNavigationBar extends StatelessWidget {
             screenWidth: screenWidth,
             screenHeight: screenHeight,
             isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
           ),
         ],
       ),
@@ -113,6 +116,7 @@ class CustomNavigationBar extends StatelessWidget {
     required double screenWidth,
     required double screenHeight,
     required bool isLandscape,
+    required bool isDarkMode,
   }) {
     final isActive = currentIndex == index;
     final iconSize = isLandscape ? screenHeight * 0.065 : screenWidth * 0.07;
@@ -136,7 +140,9 @@ class CustomNavigationBar extends StatelessWidget {
               children: [
                 Icon(
                   isActive ? activeIcon : icon,
-                  color: isActive ? const Color(0xFFB65E6A) : Colors.black,
+                  color: isActive
+                      ? const Color(0xFFB65E6A)
+                      : (isDarkMode ? Colors.white70 : Colors.black),
                   size: iconSize,
                 ),
                 // Dot indicator
@@ -151,7 +157,7 @@ class CustomNavigationBar extends StatelessWidget {
                         color: const Color(0xFFB65E6A),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white,
+                          color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
                           width: 2,
                         ),
                         boxShadow: [
@@ -170,7 +176,9 @@ class CustomNavigationBar extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: isActive ? const Color(0xFFB65E6A) : Colors.black,
+                color: isActive
+                    ? const Color(0xFFB65E6A)
+                    : (isDarkMode ? Colors.white70 : Colors.black),
                 fontSize: fontSize,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w700,

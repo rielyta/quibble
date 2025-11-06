@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../widgets/navigation_bar.dart';
 import '../services/quiz_stats_service.dart';
 import '../model/quiz_stat.dart';
+import '../model/level_system.dart';
+import '../provider/theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String name = 'name';
   QuizStats stats = QuizStats();
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -22,8 +26,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
+    setState(() {
+      isLoading = true;
+    });
+
     await _loadUsername();
     await _loadStats();
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<void> _loadUsername() async {
@@ -45,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
     final averageScore = stats.completedQuizzes > 0
         ? (stats.totalScore / stats.completedQuizzes).round()
         : 0;
@@ -54,27 +67,38 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFFFF8E7),
-                Color(0xFFFFE19E),
+              colors: isDarkMode
+                  ? [
+                const Color(0xFF1A1A1A),
+                const Color(0xFF2D2D2D),
+              ]
+                  : [
+                const Color(0xFFFFF8E7),
+                const Color(0xFFFFE19E),
               ],
-              stops: [0.3, 1.0],
+              stops: const [0.3, 1.0],
             ),
           ),
           child: Stack(
             children: [
               // Main Content
-              SingleChildScrollView(
+              isLoading
+                  ? Center(
+                child: CircularProgressIndicator(
+                  color: isDarkMode ? Colors.white : const Color(0xFFEE7C9E),
+                ),
+              )
+                  : SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Padding(
                   padding: EdgeInsets.only(bottom: navBarHeight + 15),
                   child: isLandscape
-                      ? _buildLandscapeLayout(screenWidth, screenHeight, averageScore)
-                      : _buildPortraitLayout(screenWidth, screenHeight, averageScore),
+                      ? _buildLandscapeLayout(screenWidth, screenHeight, averageScore, isDarkMode)
+                      : _buildPortraitLayout(screenWidth, screenHeight, averageScore, isDarkMode),
                 ),
               ),
               // Bottom Navigation Bar
@@ -94,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPortraitLayout(double screenWidth, double screenHeight, int averageScore) {
+  Widget _buildPortraitLayout(double screenWidth, double screenHeight, int averageScore, bool isDarkMode) {
     return Column(
       children: [
         SizedBox(height: screenHeight * 0.03),
@@ -111,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Hello,',
                     style: TextStyle(
-                      color: const Color(0xFF5D4037),
+                      color: isDarkMode ? Colors.white70 : const Color(0xFF5D4037),
                       fontSize: screenWidth * 0.05,
                       fontFamily: 'SF Pro',
                       fontWeight: FontWeight.w500,
@@ -120,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     name,
                     style: TextStyle(
-                      color: const Color(0xFF5D4037),
+                      color: isDarkMode ? Colors.white : const Color(0xFF5D4037),
                       fontSize: screenWidth * 0.07,
                       fontFamily: 'SF Pro',
                       fontWeight: FontWeight.w800,
@@ -157,25 +181,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
         SizedBox(height: screenHeight * 0.03),
 
-        // Score Card with modern design
-        _buildScoreCard(screenWidth, screenHeight, averageScore, false),
+        // Level Card (NEW!)
+        _buildLevelCard(screenWidth, screenHeight, false, isDarkMode),
 
         SizedBox(height: screenHeight * 0.025),
 
-        // XP Progress Card
-        _buildXPCard(screenWidth, screenHeight, false),
+        // Score Card
+        _buildScoreCard(screenWidth, screenHeight, averageScore, false, isDarkMode),
 
         SizedBox(height: screenHeight * 0.025),
 
         // Stats Grid
-        _buildStatsGrid(screenWidth, screenHeight, false),
+        _buildStatsGrid(screenWidth, screenHeight, false, isDarkMode),
 
         SizedBox(height: screenHeight * 0.02),
       ],
     );
   }
 
-  Widget _buildLandscapeLayout(double screenWidth, double screenHeight, int averageScore) {
+  Widget _buildLandscapeLayout(double screenWidth, double screenHeight, int averageScore, bool isDarkMode) {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.04,
@@ -200,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           'Hello,',
                           style: TextStyle(
-                            color: const Color(0xFF5D4037),
+                            color: isDarkMode ? Colors.white70 : const Color(0xFF5D4037),
                             fontSize: screenHeight * 0.055,
                             fontFamily: 'SF Pro',
                             fontWeight: FontWeight.w500,
@@ -209,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           name,
                           style: TextStyle(
-                            color: const Color(0xFF5D4037),
+                            color: isDarkMode ? Colors.white : const Color(0xFF5D4037),
                             fontSize: screenHeight * 0.08,
                             fontFamily: 'SF Pro',
                             fontWeight: FontWeight.w800,
@@ -229,159 +253,67 @@ class _HomeScreenState extends State<HomeScreen> {
                         boxShadow: [
                           BoxShadow(
                             color: const Color(0xFFEE7C9E).withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Icon(
                         Icons.person,
                         color: Colors.white,
-                        size: screenHeight * 0.09,
+                        size: screenHeight * 0.08,
                       ),
                     ),
                   ],
                 ),
-
                 SizedBox(height: screenHeight * 0.04),
-
-                // XP Card
-                _buildXPCard(screenWidth, screenHeight, true),
+                _buildLevelCard(screenWidth, screenHeight, true, isDarkMode),
+                SizedBox(height: screenHeight * 0.03),
+                _buildScoreCard(screenWidth, screenHeight, averageScore, true, isDarkMode),
               ],
             ),
           ),
 
-          SizedBox(width: screenWidth * 0.03),
+          SizedBox(width: screenWidth * 0.04),
 
-          // Right Column
+          // Right Column - Stats
           Expanded(
             flex: 5,
-            child: Column(
-              children: [
-                _buildScoreCard(screenWidth, screenHeight, averageScore, true),
-                SizedBox(height: screenHeight * 0.03),
-                _buildStatsGrid(screenWidth, screenHeight, true),
-              ],
-            ),
+            child: _buildStatsGrid(screenWidth, screenHeight, true, isDarkMode),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildScoreCard(double screenWidth, double screenHeight, int averageScore, bool isLandscape) {
+  Widget _buildLevelCard(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
+    final totalXP = stats.totalXP;
+    final currentLevel = LevelSystem.getCurrentLevel(totalXP);
+    final nextLevel = LevelSystem.getNextLevel(totalXP);
+    final progress = LevelSystem.getProgressToNextLevel(totalXP);
+    final xpToNext = LevelSystem.getXPToNextLevel(totalXP);
+    final isMaxLevel = nextLevel == null;
+
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: isLandscape ? 0 : screenWidth * 0.06,
       ),
       padding: EdgeInsets.all(isLandscape ? screenHeight * 0.04 : screenWidth * 0.05),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF8F9ABA),
-            Color(0xFFA3ADCA),
+            Color(currentLevel.color),
+            Color(currentLevel.color).withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8F9ABA).withValues(alpha: 0.4),
+            color: Color(currentLevel.color).withValues(alpha: 0.4),
             blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Average Score',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.042,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isLandscape ? screenWidth * 0.015 : screenWidth * 0.025,
-                  vertical: isLandscape ? screenHeight * 0.01 : screenHeight * 0.008,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.star,
-                  color: Colors.white,
-                  size: isLandscape ? screenHeight * 0.045 : screenWidth * 0.05,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isLandscape ? screenHeight * 0.025 : screenHeight * 0.015),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '$averageScore',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: isLandscape ? screenHeight * 0.2 : screenWidth * 0.22,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(bottom: isLandscape ? screenHeight * 0.02 : screenWidth * 0.02),
-                child: Text(
-                  ' pts',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: isLandscape ? screenHeight * 0.055 : screenWidth * 0.065,
-                    fontFamily: 'SF Pro',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isLandscape ? screenHeight * 0.015 : screenHeight * 0.01),
-          Text(
-            '${stats.completedQuizzes} Quiz${stats.completedQuizzes != 1 ? 'zes' : ''} Completed',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.85),
-              fontSize: isLandscape ? screenHeight * 0.038 : screenWidth * 0.035,
-              fontFamily: 'SF Pro',
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildXPCard(double screenWidth, double screenHeight, bool isLandscape) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: isLandscape ? 0 : screenWidth * 0.06,
-      ),
-      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.03 : screenWidth * 0.045),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -391,31 +323,54 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Experience Points',
-                style: TextStyle(
-                  color: const Color(0xFF5D4037),
-                  fontSize: isLandscape ? screenHeight * 0.042 : screenWidth * 0.04,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.emoji_events,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Level ${currentLevel.level}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.04,
+                          fontFamily: 'SF Pro',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    currentLevel.title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isLandscape ? screenHeight * 0.055 : screenWidth * 0.055,
+                      fontFamily: 'SF Pro',
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
               Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: isLandscape ? screenWidth * 0.015 : screenWidth * 0.025,
-                  vertical: isLandscape ? screenHeight * 0.008 : screenHeight * 0.006,
+                  horizontal: isLandscape ? screenWidth * 0.02 : screenWidth * 0.03,
+                  vertical: isLandscape ? screenHeight * 0.01 : screenHeight * 0.008,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
-                  ),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${stats.totalCorrect * 10} XP',
+                  '⚡ $totalXP XP',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.035,
+                    fontSize: isLandscape ? screenHeight * 0.04 : screenWidth * 0.04,
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w700,
                   ),
@@ -423,28 +378,36 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: isLandscape ? screenHeight * 0.02 : screenHeight * 0.015),
+
+          SizedBox(height: isLandscape ? screenHeight * 0.025 : screenHeight * 0.02),
+
+          // Progress Bar
           Container(
-            height: isLandscape ? screenHeight * 0.03 : screenHeight * 0.022,
+            height: isLandscape ? screenHeight * 0.025 : 12,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                value: stats.progressWidth,
+                value: progress,
                 backgroundColor: Colors.transparent,
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEE7C9E)),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
           ),
-          SizedBox(height: isLandscape ? screenHeight * 0.012 : screenHeight * 0.008),
+
+          SizedBox(height: isLandscape ? screenHeight * 0.015 : screenHeight * 0.012),
+
+          // Progress Text
           Text(
-            '${(stats.progressWidth * 100).toInt()}% Complete',
+            isMaxLevel
+                ? '🎉 Max Level Reached!'
+                : 'Next: ${nextLevel?.title} • $xpToNext XP to go',
             style: TextStyle(
-              color: const Color(0xFF8D6E63),
-              fontSize: isLandscape ? screenHeight * 0.032 : screenWidth * 0.032,
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.032,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w500,
             ),
@@ -454,7 +417,96 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStatsGrid(double screenWidth, double screenHeight, bool isLandscape) {
+  Widget _buildScoreCard(double screenWidth, double screenHeight, int averageScore, bool isLandscape, bool isDarkMode) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 0 : screenWidth * 0.06,
+      ),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.04 : screenWidth * 0.05),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildScoreStat(
+            icon: Icons.trending_up,
+            label: 'Avg Score',
+            value: '$averageScore%',
+            color: const Color(0xFFEE7C9E),
+            isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
+          ),
+          Container(
+            width: 1,
+            height: isLandscape ? screenHeight * 0.08 : 50,
+            color: isDarkMode
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.1),
+          ),
+          _buildScoreStat(
+            icon: Icons.quiz,
+            label: 'Completed',
+            value: '${stats.completedQuizzes}',
+            color: const Color(0xFF8F9ABA),
+            isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreStat({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required bool isLandscape,
+    required bool isDarkMode,
+  }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: color,
+          size: isLandscape ? screenHeight * 0.06 : screenWidth * 0.08,
+        ),
+        SizedBox(height: isLandscape ? screenHeight * 0.01 : 8),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: isLandscape ? screenHeight * 0.065 : screenWidth * 0.08,
+            fontFamily: 'SF Pro',
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white70 : const Color(0xFF8D6E63),
+            fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.032,
+            fontFamily: 'SF Pro',
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsGrid(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: isLandscape ? 0 : screenWidth * 0.06,
@@ -475,6 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
             screenWidth: screenWidth,
             screenHeight: screenHeight,
             isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
           ),
           _buildStatItem(
             icon: Icons.cancel,
@@ -484,24 +537,27 @@ class _HomeScreenState extends State<HomeScreen> {
             screenWidth: screenWidth,
             screenHeight: screenHeight,
             isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
           ),
           _buildStatItem(
-            icon: Icons.quiz,
-            label: 'Total Questions',
+            icon: Icons.psychology,
+            label: 'Total XP',
+            value: '${stats.totalXP}',
+            color: const Color(0xFFFFB74D),
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
+          ),
+          _buildStatItem(
+            icon: Icons.question_answer,
+            label: 'Questions',
             value: '${stats.totalQuestions}',
             color: const Color(0xFF8F9ABA),
             screenWidth: screenWidth,
             screenHeight: screenHeight,
             isLandscape: isLandscape,
-          ),
-          _buildStatItem(
-            icon: Icons.percent,
-            label: 'Completion',
-            value: '${stats.completionPercentage}%',
-            color: const Color(0xFFFFB74D),
-            screenWidth: screenWidth,
-            screenHeight: screenHeight,
-            isLandscape: isLandscape,
+            isDarkMode: isDarkMode,
           ),
         ],
       ),
@@ -516,15 +572,16 @@ class _HomeScreenState extends State<HomeScreen> {
     required double screenWidth,
     required double screenHeight,
     required bool isLandscape,
+    required bool isDarkMode,
   }) {
     return Container(
       padding: EdgeInsets.all(isLandscape ? screenHeight * 0.02 : screenWidth * 0.035),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.06),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -566,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(
               label,
               style: TextStyle(
-                color: const Color(0xFF5D4037),
+                color: isDarkMode ? Colors.white70 : const Color(0xFF5D4037),
                 fontSize: isLandscape ? screenHeight * 0.03 : screenWidth * 0.031,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w600,

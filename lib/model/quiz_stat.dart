@@ -33,6 +33,9 @@ class QuizStats {
     );
   }
 
+  // Calculate
+  int get totalXP => totalCorrect * 10;
+
   int get completionPercentage {
     if (totalQuestions == 0) return 0;
     return ((totalCorrect / totalQuestions) * 100).round();

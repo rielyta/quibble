@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../widgets/navigation_bar.dart';
 import '../services/quiz_stats_service.dart';
+import '../provider/theme_provider.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -28,6 +30,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showExitDialog() async {
+    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -35,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
           title: Row(
             children: [
               Container(
@@ -51,23 +55,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Exit',
                 style: TextStyle(
                   fontFamily: 'SF Pro',
                   fontWeight: FontWeight.w700,
                   fontSize: 20,
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
               ),
             ],
           ),
-          content: const Text(
+          content: Text(
             'Are you sure you want to logout and reset all data?',
             style: TextStyle(
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w400,
               fontSize: 16,
-              color: Color(0xFF5D4037),
+              color: isDarkMode ? Colors.white70 : const Color(0xFF5D4037),
             ),
           ),
           actions: [
@@ -129,21 +134,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
 
     final navBarHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
 
     return Scaffold(
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFFFF8E7),
-                Color(0xFFFFE19E),
+              colors: isDarkMode
+                  ? [
+                const Color(0xFF1A1A1A),
+                const Color(0xFF2D2D2D),
+              ]
+                  : [
+                const Color(0xFFFFF8E7),
+                const Color(0xFFFFE19E),
               ],
-              stops: [0.3, 1.0],
+              stops: const [0.3, 1.0],
             ),
           ),
           child: Stack(
@@ -157,8 +169,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: navBarHeight + 15),
                         child: isLandscape
-                            ? _buildLandscapeLayout(screenWidth, screenHeight)
-                            : _buildPortraitLayout(screenWidth, screenHeight),
+                            ? _buildLandscapeLayout(screenWidth, screenHeight, isDarkMode)
+                            : _buildPortraitLayout(screenWidth, screenHeight, isDarkMode),
                       ),
                     ),
                   ),
@@ -180,23 +192,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildPortraitLayout(double screenWidth, double screenHeight) {
+  Widget _buildPortraitLayout(double screenWidth, double screenHeight, bool isDarkMode) {
     return Column(
       children: [
         SizedBox(height: screenHeight * 0.05),
 
         // Avatar with decorative elements
-        _buildAvatarSection(screenWidth, screenHeight, false),
+        _buildAvatarSection(screenWidth, screenHeight, false, isDarkMode),
 
         SizedBox(height: screenHeight * 0.04),
 
         // Profile Info Card
-        _buildProfileCard(screenWidth, screenHeight, false),
+        _buildProfileCard(screenWidth, screenHeight, false, isDarkMode),
 
         SizedBox(height: screenHeight * 0.03),
 
-        // Quick Info Cards
-        _buildQuickInfoCards(screenWidth, screenHeight, false),
+        // Dark Mode Toggle
+        _buildDarkModeToggle(screenWidth, screenHeight, false, isDarkMode),
 
         SizedBox(height: screenHeight * 0.03),
 
@@ -208,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLandscapeLayout(double screenWidth, double screenHeight) {
+  Widget _buildLandscapeLayout(double screenWidth, double screenHeight, bool isDarkMode) {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.08,
@@ -223,7 +235,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildAvatarSection(screenWidth, screenHeight, true),
+                _buildAvatarSection(screenWidth, screenHeight, true, isDarkMode),
                 SizedBox(height: screenHeight * 0.04),
                 _buildLogoutButton(screenWidth, screenHeight, true),
               ],
@@ -238,9 +250,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildProfileCard(screenWidth, screenHeight, true),
+                _buildProfileCard(screenWidth, screenHeight, true, isDarkMode),
                 SizedBox(height: screenHeight * 0.03),
-                _buildQuickInfoCards(screenWidth, screenHeight, true),
+                _buildDarkModeToggle(screenWidth, screenHeight, true, isDarkMode),
               ],
             ),
           ),
@@ -249,7 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAvatarSection(double screenWidth, double screenHeight, bool isLandscape) {
+  Widget _buildAvatarSection(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
     final avatarSize = isLandscape ? screenHeight * 0.35 : screenWidth * 0.40;
 
     return Stack(
@@ -261,7 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           height: avatarSize * 1.3,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFFEE7C9E).withValues(alpha: 0.1),
+            color: const Color(0xFFEE7C9E).withValues(alpha: isDarkMode ? 0.2 : 0.1),
           ),
         ),
         Container(
@@ -269,7 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           height: avatarSize * 1.15,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFFEE7C9E).withValues(alpha: 0.15),
+            color: const Color(0xFFEE7C9E).withValues(alpha: isDarkMode ? 0.25 : 0.15),
           ),
         ),
 
@@ -330,18 +342,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileCard(double screenWidth, double screenHeight, bool isLandscape) {
+  Widget _buildProfileCard(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: isLandscape ? 0 : screenWidth * 0.06,
       ),
       padding: EdgeInsets.all(isLandscape ? screenHeight * 0.04 : screenWidth * 0.05),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.08),
             blurRadius: 15,
             offset: const Offset(0, 4),
           ),
@@ -355,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 'Username',
                 style: TextStyle(
-                  color: const Color(0xFF8D6E63),
+                  color: isDarkMode ? Colors.white70 : const Color(0xFF8D6E63),
                   fontSize: isLandscape ? screenHeight * 0.04 : screenWidth * 0.038,
                   fontFamily: 'SF Pro',
                   fontWeight: FontWeight.w500,
@@ -376,13 +388,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               vertical: isLandscape ? screenHeight * 0.03 : screenHeight * 0.018,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: isDarkMode ? const Color(0xFF3D3D3D) : const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               name,
               style: TextStyle(
-                color: const Color(0xFF5D4037),
+                color: isDarkMode ? Colors.white : const Color(0xFF5D4037),
                 fontSize: isLandscape ? screenHeight * 0.055 : screenWidth * 0.055,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w700,
@@ -395,19 +407,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildQuickInfoCards(double screenWidth, double screenHeight, bool isLandscape) {
+  Widget _buildDarkModeToggle(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: isLandscape ? 0 : screenWidth * 0.06,
       ),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.04 : screenWidth * 0.05),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(width: isLandscape ? screenWidth * 0.02 : screenWidth * 0.035),
+          Row(
+            children: [
+              Icon(
+                isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                color: isDarkMode ? const Color(0xFFFFB74D) : const Color(0xFF8F9ABA),
+                size: isLandscape ? screenHeight * 0.05 : screenWidth * 0.055,
+              ),
+              SizedBox(width: isLandscape ? screenWidth * 0.02 : screenWidth * 0.03),
+              Text(
+                'Dark Mode',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : const Color(0xFF5D4037),
+                  fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.045,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          Switch(
+            value: isDarkMode,
+            onChanged: (value) {
+              themeProvider.toggleTheme();
+            },
+            activeColor: const Color(0xFFEE7C9E),
+            activeTrackColor: const Color(0xFFEE7C9E).withValues(alpha: 0.5),
+            inactiveThumbColor: const Color(0xFF8F9ABA),
+            inactiveTrackColor: const Color(0xFF8F9ABA).withValues(alpha: 0.3),
+          ),
         ],
       ),
     );
   }
-
 
   Widget _buildLogoutButton(double screenWidth, double screenHeight, bool isLandscape) {
     return Container(

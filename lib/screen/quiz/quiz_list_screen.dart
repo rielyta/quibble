@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:quibble/data/data_bible_character.dart';
 import 'package:quibble/data/data_bible_verse.dart';
 import 'package:quibble/data/data_bible_event.dart';
 import 'package:quibble/screen/quiz/quiz_screen.dart';
 import '../../widgets/navigation_bar.dart';
 import '../../widgets/list_quiz.dart';
+import '../../provider/theme_provider.dart';
 
 class QuizListScreen extends StatelessWidget {
   const QuizListScreen({super.key});
@@ -14,10 +16,9 @@ class QuizListScreen extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
 
     final navBarHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
-
 
     final topSpacing = isLandscape ? screenHeight * 0.06 : screenHeight * 0.04;
     final headerIconSize = isLandscape ? screenHeight * 0.14 : screenWidth * 0.18;
@@ -37,16 +38,22 @@ class QuizListScreen extends StatelessWidget {
         child: Container(
           width: screenWidth,
           height: screenHeight,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFF8E7),
-                Color(0xFFFFE19E),
-                Color(0xFFFFD180),
+              colors: isDarkMode
+                  ? [
+                const Color(0xFF1A1A1A),
+                const Color(0xFF2D2D2D),
+                const Color(0xFF3D3D3D),
+              ]
+                  : [
+                const Color(0xFFFFF8E7),
+                const Color(0xFFFFE19E),
+                const Color(0xFFFFD180),
               ],
-              stops: [0.0, 0.5, 1.0],
+              stops: const [0.0, 0.5, 1.0],
             ),
           ),
           child: Stack(
@@ -60,7 +67,9 @@ class QuizListScreen extends StatelessWidget {
                   height: largeCircleSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: isDarkMode
+                        ? Colors.white.withValues(alpha: 0.03)
+                        : Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -72,7 +81,9 @@ class QuizListScreen extends StatelessWidget {
                   height: smallCircleSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: isDarkMode
+                        ? Colors.white.withValues(alpha: 0.03)
+                        : Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -96,11 +107,11 @@ class QuizListScreen extends StatelessWidget {
                             width: headerIconSize,
                             height: headerIconSize,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
+                                  color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.15),
                                   blurRadius: isLandscape ? 18 : 15,
                                   offset: Offset(0, isLandscape ? 6 : 5),
                                 ),
@@ -119,7 +130,7 @@ class QuizListScreen extends StatelessWidget {
                           Text(
                             'Bible Quiz',
                             style: TextStyle(
-                              color: const Color(0xFF5D4037),
+                              color: isDarkMode ? Colors.white : const Color(0xFF5D4037),
                               fontSize: titleFontSize,
                               fontFamily: 'SF Pro',
                               fontWeight: FontWeight.w800,
@@ -133,7 +144,7 @@ class QuizListScreen extends StatelessWidget {
                           Text(
                             'Test your knowledge',
                             style: TextStyle(
-                              color: const Color(0xFF8D6E63),
+                              color: isDarkMode ? Colors.white70 : const Color(0xFF8D6E63),
                               fontSize: subtitleFontSize,
                               fontFamily: 'SF Pro',
                               fontWeight: FontWeight.w500,
