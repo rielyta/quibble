@@ -22,7 +22,6 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
-  bool _leveledUp = false;
   LevelData? _newLevel;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -68,7 +67,6 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
     if (LevelSystem.checkLevelUp(oldXP, newXP)) {
       setState(() {
-        _leveledUp = true;
         _newLevel = LevelSystem.getCurrentLevel(newXP);
       });
 

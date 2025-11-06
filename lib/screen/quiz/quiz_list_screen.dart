@@ -16,62 +16,73 @@ class QuizListScreen extends StatefulWidget {
 }
 
 class _QuizListScreenState extends State<QuizListScreen> {
-  bool _isImagesPreloaded = false;
+
+
+  late final BoxDecoration _lightDecoration;
+  late final BoxDecoration _darkDecoration;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isImagesPreloaded) {
-      _preloadImages();
-    }
-  }
+  void initState() {
+    super.initState();
 
-  Future<void> _preloadImages() async {
-    if (_isImagesPreloaded) return;
-
-    try {
-      await Future.wait([
-        precacheImage(const AssetImage('assets/images/biblechara.png'), context),
-        precacheImage(const AssetImage('assets/images/bibleverse.png'), context),
-        precacheImage(const AssetImage('assets/images/biblevent.png'), context),
-      ]);
-      if (mounted) {
-        setState(() {
-          _isImagesPreloaded = true;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error preloading images: $e');
-    }
-  }
-
-  void _navigateToQuiz(String category, dynamic questions) async {
-    // Tampilkan loading minimal
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black26,
-      builder: (dialogContext) => PopScope(
-        canPop: false,
-        child: const Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 3,
-          ),
-        ),
+    _lightDecoration = const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFFFF8E7),
+          Color(0xFFFFE19E),
+          Color(0xFFFFD180),
+        ],
+        stops: [0.0, 0.5, 1.0],
       ),
     );
 
-    // Delay minimal untuk smooth transition
-    await Future.delayed(const Duration(milliseconds: 150));
+    _darkDecoration = const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF1A1A1A),
+          Color(0xFF2D2D2D),
+          Color(0xFF3D3D3D),
+        ],
+        stops: [0.0, 0.5, 1.0],
+      ),
+    );
 
-    if (!mounted) return;
-    Navigator.pop(context); // Close loading dialog
+    // Preload images in background
+    _preloadImagesAsync();
+  }
 
-    // Navigate dengan delay kecil
-    await Future.delayed(const Duration(milliseconds: 50));
+  Future<void> _preloadImagesAsync() async {
+    // Use addPostFrameCallback to avoid blocking initial render
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
 
-    if (!mounted) return;
+      try {
+        await Future.wait([
+          precacheImage(const AssetImage('assets/images/biblechara.png'), context),
+          precacheImage(const AssetImage('assets/images/bibleverse.png'), context),
+          precacheImage(const AssetImage('assets/images/biblevent.png'), context),
+        ]);
 
+        if (mounted) {
+          setState(() {
+          });
+        }
+      } catch (e) {
+        debugPrint('Error preloading images: $e');
+        // Set as preloaded anyway to show UI
+        if (mounted) {
+          setState(() {
+          });
+        }
+      }
+    });
+  }
+
+  void _navigateToQuiz(String category, dynamic questions) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -88,7 +99,8 @@ class _QuizListScreenState extends State<QuizListScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final isDarkMode = Provider.of<ThemeProvider>(context, listen: true).isDarkMode;
+
+    final isDarkMode = context.watch<ThemeProvider>().isDarkMode;
 
     final navBarHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
 
@@ -97,30 +109,9 @@ class _QuizListScreenState extends State<QuizListScreen> {
         child: Container(
           width: screenWidth,
           height: screenHeight,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDarkMode
-                  ? [
-                const Color(0xFF1A1A1A),
-                const Color(0xFF2D2D2D),
-                const Color(0xFF3D3D3D),
-              ]
-                  : [
-                const Color(0xFFFFF8E7),
-                const Color(0xFFFFE19E),
-                const Color(0xFFFFD180),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
-          ),
+          decoration: isDarkMode ? _darkDecoration : _lightDecoration,
           child: Stack(
             children: [
-              // Background circles - Simplified untuk performance
-              if (!isLandscape) // Hanya tampilkan di portrait
-                _buildBackgroundCircles(screenWidth, screenHeight, isDarkMode),
-
               // Main Content
               _buildMainContent(
                 screenWidth,
@@ -141,41 +132,6 @@ class _QuizListScreenState extends State<QuizListScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBackgroundCircles(double width, double height, bool isDarkMode) {
-    return Stack(
-      children: [
-        Positioned(
-          top: -50,
-          right: -50,
-          child: Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDarkMode
-                  ? Colors.white.withValues(alpha: 0.03)
-                  : Colors.white.withValues(alpha: 0.1),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 100,
-          left: -30,
-          child: Container(
-            width: 150,
-            height: 150,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDarkMode
-                  ? Colors.white.withValues(alpha: 0.03)
-                  : Colors.white.withValues(alpha: 0.1),
-            ),
-          ),
-        ),
-      ],
     );
   }
 

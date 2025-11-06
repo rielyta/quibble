@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide debugPrint;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../widgets/navigation_bar.dart';
@@ -27,8 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     try {
-      // Jalankan loading secara parallel
-      final results = await Future.wait([
+      // Load data secara parallel
+      final _ = await Future.wait([
         _loadUsername(),
         _loadStats(),
       ]);
@@ -49,34 +49,44 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    final loadedName = prefs.getString('name') ?? 'name';
-    if (mounted) {
-      setState(() {
-        name = loadedName;
-      });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final loadedName = prefs.getString('name') ?? 'name';
+      if (mounted) {
+        setState(() {
+          name = loadedName;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading username: $e');
     }
   }
 
   Future<void> _loadStats() async {
-    final loadedStats = await QuizStatsService.loadStats();
-    if (mounted) {
-      setState(() {
-        stats = loadedStats;
-      });
+    try {
+      final loadedStats = await QuizStatsService.loadStats();
+      if (mounted) {
+        setState(() {
+          stats = loadedStats;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading stats: $e');
+      // Use default stats if error
+      if (mounted) {
+        setState(() {
+          stats = QuizStats();
+        });
+      }
     }
   }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+    final isDarkMode = context.watch<ThemeProvider>().isDarkMode;
     final averageScore = stats.completedQuizzes > 0
         ? (stats.totalScore / stats.completedQuizzes).round()
         : 0;
@@ -244,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Hello,',
                           style: TextStyle(
                             color: isDarkMode ? Colors.white70 : const Color(0xFF5D4037),
-                            fontSize: screenHeight * 0.055,
+                            fontSize: screenHeight * 0.05,
                             fontFamily: 'SF Pro',
                             fontWeight: FontWeight.w500,
                           ),
@@ -260,10 +270,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    // Avatar
                     Container(
-                      width: screenHeight * 0.15,
-                      height: screenHeight * 0.15,
+                      width: screenHeight * 0.14,
+                      height: screenHeight * 0.14,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
@@ -285,20 +294,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: screenHeight * 0.04),
-                _buildLevelCard(screenWidth, screenHeight, true, isDarkMode),
                 SizedBox(height: screenHeight * 0.03),
-                _buildScoreCard(screenWidth, screenHeight, averageScore, true, isDarkMode),
+                _buildLevelCard(screenWidth, screenHeight, true, isDarkMode),
               ],
             ),
           ),
-
-          SizedBox(width: screenWidth * 0.04),
-
-          // Right Column - Stats
+          SizedBox(width: screenWidth * 0.02),
+          // Right Column
           Expanded(
             flex: 5,
-            child: _buildStatsGrid(screenWidth, screenHeight, true, isDarkMode),
+            child: Column(
+              children: [
+                _buildScoreCard(screenWidth, screenHeight, averageScore, true, isDarkMode),
+                SizedBox(height: screenHeight * 0.02),
+                _buildStatsGrid(screenWidth, screenHeight, true, isDarkMode),
+              ],
+            ),
           ),
         ],
       ),
@@ -320,8 +331,6 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: EdgeInsets.all(isLandscape ? screenHeight * 0.04 : screenWidth * 0.05),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
           colors: [
             Color(currentLevel.color),
             Color(currentLevel.color).withValues(alpha: 0.8),
@@ -330,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Color(currentLevel.color).withValues(alpha: 0.4),
+            color: Color(currentLevel.color).withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -345,33 +354,22 @@ class _HomeScreenState extends State<HomeScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.emoji_events,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Level ${currentLevel.level}',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.04,
-                          fontFamily: 'SF Pro',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'Level ${currentLevel.level}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isLandscape ? screenHeight * 0.08 : screenWidth * 0.09,
+                      fontFamily: 'SF Pro',
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     currentLevel.title,
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isLandscape ? screenHeight * 0.055 : screenWidth * 0.055,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.045,
                       fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -379,40 +377,57 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: isLandscape ? screenWidth * 0.02 : screenWidth * 0.03,
-                  vertical: isLandscape ? screenHeight * 0.01 : screenHeight * 0.008,
+                  vertical: isLandscape ? screenHeight * 0.02 : screenHeight * 0.01,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  '⚡ $totalXP XP',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isLandscape ? screenHeight * 0.04 : screenWidth * 0.04,
-                    fontFamily: 'SF Pro',
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.stars,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$totalXP XP',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isLandscape ? screenHeight * 0.04 : screenWidth * 0.04,
+                        fontFamily: 'SF Pro',
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
 
-          SizedBox(height: isLandscape ? screenHeight * 0.025 : screenHeight * 0.02),
+          SizedBox(height: isLandscape ? screenHeight * 0.02 : screenHeight * 0.015),
 
           // Progress Bar
           Container(
-            height: isLandscape ? screenHeight * 0.025 : 12,
+            height: isLandscape ? screenHeight * 0.025 : 8,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(10),
+              color: Colors.black.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(4),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: progress,
-                backgroundColor: Colors.transparent,
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: progress,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.transparent,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
               ),
             ),
           ),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:quibble/screen/home_screen.dart';
-import 'package:quibble/screen/quiz/quiz_list_screen.dart';
-import 'package:quibble/screen/profile_screen.dart';
+import '../screen/home_screen.dart';
+import '../screen/quiz/quiz_list_screen.dart';
+import '../screen/profile_screen.dart';
 import '../provider/theme_provider.dart';
 
-class CustomNavigationBar extends StatelessWidget {
+class CustomNavigationBar extends StatefulWidget {
   final int currentIndex;
   final VoidCallback? onNavigationComplete;
 
@@ -15,10 +15,23 @@ class CustomNavigationBar extends StatelessWidget {
     this.onNavigationComplete,
   });
 
-  void _handleNavigation(BuildContext context, int index) async {
-    if (index == currentIndex) return;
+  @override
+  State<CustomNavigationBar> createState() => _CustomNavigationBarState();
+}
 
-    Future.microtask(() => onNavigationComplete?.call());
+class _CustomNavigationBarState extends State<CustomNavigationBar> {
+  bool _isNavigating = false;
+
+  void _handleNavigation(BuildContext context, int index) async {
+    // Prevent navigation if already on this screen
+    if (index == widget.currentIndex) return;
+
+    // Prevent multiple taps
+    if (_isNavigating) return;
+    setState(() => _isNavigating = true);
+
+    // Call completion callback
+    widget.onNavigationComplete?.call();
 
     Widget destination;
     switch (index) {
@@ -32,33 +45,43 @@ class CustomNavigationBar extends StatelessWidget {
         destination = const ProfileScreen();
         break;
       default:
+        setState(() => _isNavigating = false);
         return;
     }
 
-    await Future.delayed(const Duration(milliseconds: 50));
-
     if (!context.mounted) return;
 
-    Navigator.pushReplacement(
+    await Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => destination,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        pageBuilder: (_, __, ___) => destination,
+        transitionsBuilder: (context, animation, _, child) {
           return FadeTransition(
-            opacity: animation,
+            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              ),
+            ),
             child: child,
           );
         },
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 200),
+        reverseTransitionDuration: const Duration(milliseconds: 150),
       ),
     );
+
+    if (mounted) {
+      setState(() => _isNavigating = false);
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+    final isDarkMode = context.watch<ThemeProvider>().isDarkMode;
 
     final navHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
 
@@ -130,7 +153,7 @@ class CustomNavigationBar extends StatelessWidget {
     required bool isLandscape,
     required bool isDarkMode,
   }) {
-    final isActive = currentIndex == index;
+    final isActive = widget.currentIndex == index;
     final iconSize = isLandscape ? screenHeight * 0.065 : screenWidth * 0.07;
     final fontSize = isLandscape ? screenHeight * 0.035 : screenWidth * 0.032;
 

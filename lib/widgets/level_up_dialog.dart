@@ -25,19 +25,28 @@ class _LevelUpDialogState extends State<LevelUpDialog>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.7, curve: Curves.elasticOut),
+      ),
     );
 
     _rotateAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 1.0, curve: Curves.easeInOut),
+      ),
     );
 
-    _controller.forward();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _controller.forward();
+    });
   }
 
   @override
@@ -49,161 +58,175 @@ class _LevelUpDialogState extends State<LevelUpDialog>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final double() = MediaQuery.of(context).size.height;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              width: screenWidth * 0.85,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(widget.newLevel.color),
-                    Color(widget.newLevel.color).withValues(alpha: 0.8),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(widget.newLevel.color).withValues(alpha: 0.5),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Sparkle icon
-                  Transform.rotate(
-                    angle: _rotateAnimation.value * 6.28, // Full rotation
-                    child: const Icon(
-                      Icons.auto_awesome,
-                      size: 60,
-                      color: Colors.white,
-                    ),
-                  ),
 
-                  const SizedBox(height: 16),
+    return RepaintBoundary(
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scaleAnimation.value,
+              child: child,
+            );
+          },
+          // ⭐ Build content once, reuse it
+          child: _buildDialogContent(screenWidth),
+        ),
+      ),
+    );
+  }
 
-                  // Level Up Text
-                  const Text(
-                    'LEVEL UP!',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
-                    ),
-                  ),
+  Widget _buildDialogContent(double screenWidth) {
+    return Container(
+      width: screenWidth * 0.85,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(widget.newLevel.color),
+            Color(widget.newLevel.color).withValues(alpha: 0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Color(widget.newLevel.color).withValues(alpha: 0.5),
+            blurRadius: 30,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Sparkle icon with rotation
+          AnimatedBuilder(
+            animation: _rotateAnimation,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _rotateAnimation.value * 6.28,
+                child: child,
+              );
+            },
+            child: const Icon(
+              Icons.auto_awesome,
+              size: 60,
+              color: Colors.white,
+            ),
+          ),
 
-                  const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
-                  // Level number
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Level ${widget.newLevel.level}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontFamily: 'SF Pro',
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
+          // Level Up Text
+          const Text(
+            'LEVEL UP!',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2,
+            ),
+          ),
 
-                  const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
-                  // Title
-                  Text(
-                    widget.newLevel.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Divider
-                  Container(
-                    height: 2,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Motivational message
-                  Text(
-                    _getMotivationalMessage(widget.newLevel.level),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 16,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Continue button
-                  ElevatedButton(
-                    onPressed: () {
-                      widget.onContinue();
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Color(widget.newLevel.color),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: const Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontFamily: 'SF Pro',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
+          // Level number
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'Level ${widget.newLevel.level}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w800,
               ),
             ),
-          );
-        },
+          ),
+
+          const SizedBox(height: 16),
+
+          // Title
+          Text(
+            widget.newLevel.title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Divider
+          Container(
+            height: 2,
+            width: 100,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Motivational message
+          Text(
+            _getMotivationalMessage(widget.newLevel.level),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 16,
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Continue button
+          ElevatedButton(
+            onPressed: () {
+              widget.onContinue();
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Color(widget.newLevel.color),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 48,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 5,
+            ),
+            child: const Text(
+              'Continue',
+              style: TextStyle(
+                fontSize: 18,
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

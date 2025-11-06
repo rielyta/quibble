@@ -21,22 +21,29 @@ class QuizQuestionScreen extends StatefulWidget {
 
 class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
   int currentQuestionIndex = 0;
-  String? selectedAnswer;
+  int? selectedAnswerIndex;
   int correctAnswers = 0;
 
+  void _selectAnswer(int index) {
+    if (selectedAnswerIndex == index) return;
+    setState(() => selectedAnswerIndex = index);
+  }
+
   void _checkAnswer() {
-    if (selectedAnswer == null) {
+    if (selectedAnswerIndex == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select an answer'),
           backgroundColor: Color(0xFFEE7C9E),
+          duration: Duration(seconds: 1),
         ),
       );
       return;
     }
 
-    final isCorrect =
-        selectedAnswer == widget.questions[currentQuestionIndex].correctAnswer;
+    final currentQuestion = widget.questions[currentQuestionIndex];
+    final selectedAnswer = currentQuestion.options[selectedAnswerIndex!];
+    final isCorrect = selectedAnswer == currentQuestion.correctAnswer;
 
     if (isCorrect) {
       correctAnswers++;
@@ -59,7 +66,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     if (currentQuestionIndex < widget.questions.length - 1) {
       setState(() {
         currentQuestionIndex++;
-        selectedAnswer = null;
+        selectedAnswerIndex = null;
       });
     } else {
       Navigator.pushReplacement(
@@ -77,7 +84,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+    final isDarkMode = context.watch<ThemeProvider>().isDarkMode;
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFFFEAB9),
@@ -256,49 +263,19 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildAnswerOptions(Question currentQuestion, double screenWidth, bool isDarkMode) {
+  Widget _buildAnswerOptions(Question question, double screenWidth, bool isDarkMode) {
     return Column(
-      children: currentQuestion.options.map((option) {
-        final isSelected = selectedAnswer == option;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedAnswer = option;
-              });
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 25,
-                vertical: 18,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFFEE7C9E)
-                    : (isDarkMode ? const Color(0xFF2D2D2D) : const Color(0xFFFFFFFF)),
-                border: Border.all(
-                  width: 3,
-                  color: const Color(0xFFEE7C9E),
-                ),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Text(
-                option,
-                style: TextStyle(
-                  color: isSelected
-                      ? Colors.white
-                      : (isDarkMode ? Colors.white : Colors.black),
-                  fontSize: screenWidth * 0.035,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
+      children: List.generate(
+        question.options.length,
+            (index) => _AnswerOption(
+          key: ValueKey('${currentQuestionIndex}_$index'),
+          option: question.options[index],
+          isSelected: selectedAnswerIndex == index,
+          onTap: () => _selectAnswer(index),
+          screenWidth: screenWidth,
+          isDarkMode: isDarkMode,
+        ),
+      ),
     );
   }
 
@@ -335,6 +312,64 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ⭐ Extracted answer option widget for better performance
+class _AnswerOption extends StatelessWidget {
+  final String option;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final double screenWidth;
+  final bool isDarkMode;
+
+  const _AnswerOption({
+    super.key,
+    required this.option,
+    required this.isSelected,
+    required this.onTap,
+    required this.screenWidth,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeInOut,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 25,
+            vertical: 18,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFFEE7C9E)
+                : (isDarkMode ? const Color(0xFF2D2D2D) : const Color(0xFFFFFFFF)),
+            border: Border.all(
+              width: 3,
+              color: const Color(0xFFEE7C9E),
+            ),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Text(
+            option,
+            style: TextStyle(
+              color: isSelected
+                  ? Colors.white
+                  : (isDarkMode ? Colors.white : Colors.black),
+              fontSize: screenWidth * 0.035,
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

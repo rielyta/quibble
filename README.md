@@ -9,8 +9,7 @@ Deskripsi :
 Quibble adalah aplikasi mobile berbasis Flutter yang dirancang untuk membantu pengguna memperdalam pengetahuan Alkitab melalui kuis interaktif yang menarik dan menginspirasi. Target pengguna adalah komunitas Kristen yang ingin belajar Firman Tuhan dengan cara yang interaktif dan modern, dengan fitur gamification berupa scoring system dan progress tracking.
 
 Credit:
-Icon and image:  https://iconify.design/ , https://iconscout.com/ , 
-
+Icon and image:  https://iconify.design/ , https://iconscout.com/ , https://pin.it/4N8rhYeUt , https://pin.it/2CT5RXL0j
 
 Demo Aplikasi:
 https://drive.google.com/drive/folders/1D3qkTqAwNFQYvLJogeESv7NW4O8KNO4R?usp=sharing
