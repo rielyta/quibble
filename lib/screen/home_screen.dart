@@ -52,30 +52,43 @@ class _HomeScreenState extends State<HomeScreen> {
     final navBarHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Stack(
-          children: [
-            // Main Content
-            SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: navBarHeight + 10),
-                child: isLandscape
-                    ? _buildLandscapeLayout(screenWidth, screenHeight, averageScore)
-                    : _buildPortraitLayout(screenWidth, screenHeight, averageScore),
-              ),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFFFF8E7),
+                Color(0xFFFFE19E),
+              ],
+              stops: [0.3, 1.0],
             ),
-            // Bottom Navigation Bar
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CustomNavigationBar(
-                currentIndex: 1,
-                onNavigationComplete: _loadData,
+          ),
+          child: Stack(
+            children: [
+              // Main Content
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: navBarHeight + 15),
+                  child: isLandscape
+                      ? _buildLandscapeLayout(screenWidth, screenHeight, averageScore)
+                      : _buildPortraitLayout(screenWidth, screenHeight, averageScore),
+                ),
               ),
-            ),
-          ],
+              // Bottom Navigation Bar
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: CustomNavigationBar(
+                  currentIndex: 1,
+                  onNavigationComplete: _loadData,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -84,25 +97,78 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildPortraitLayout(double screenWidth, double screenHeight, int averageScore) {
     return Column(
       children: [
-        // Decorative circles background with score
-        _buildScoreSection(screenWidth, screenHeight, averageScore, false),
+        SizedBox(height: screenHeight * 0.03),
 
-        // Profile Card and Stats Container
-        Column(
-          children: [
-            // Profile Card
-            Transform.translate(
-              offset: Offset(0, -screenHeight * 0.04),
-              child: _buildProfileCard(screenWidth, screenHeight, false),
-            ),
-
-            // Yellow stats container
-            Transform.translate(
-              offset: Offset(0, -screenHeight * 0.01),
-              child: _buildStatsContainer(screenWidth, screenHeight, false),
-            ),
-          ],
+        // Header with greeting
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hello,',
+                    style: TextStyle(
+                      color: const Color(0xFF5D4037),
+                      fontSize: screenWidth * 0.05,
+                      fontFamily: 'SF Pro',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    name,
+                    style: TextStyle(
+                      color: const Color(0xFF5D4037),
+                      fontSize: screenWidth * 0.07,
+                      fontFamily: 'SF Pro',
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              // Avatar
+              Container(
+                width: screenWidth * 0.14,
+                height: screenWidth * 0.14,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEE7C9E).withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: screenWidth * 0.08,
+                ),
+              ),
+            ],
+          ),
         ),
+
+        SizedBox(height: screenHeight * 0.03),
+
+        // Score Card with modern design
+        _buildScoreCard(screenWidth, screenHeight, averageScore, false),
+
+        SizedBox(height: screenHeight * 0.025),
+
+        // XP Progress Card
+        _buildXPCard(screenWidth, screenHeight, false),
+
+        SizedBox(height: screenHeight * 0.025),
+
+        // Stats Grid
+        _buildStatsGrid(screenWidth, screenHeight, false),
 
         SizedBox(height: screenHeight * 0.02),
       ],
@@ -112,28 +178,89 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildLandscapeLayout(double screenWidth, double screenHeight, int averageScore) {
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.02,
-        vertical: screenHeight * 0.02,
+        horizontal: screenWidth * 0.04,
+        vertical: screenHeight * 0.04,
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left: Score Section
-          SizedBox(
-            width: screenWidth * 0.35,
-            child: _buildScoreSection(screenWidth, screenHeight, averageScore, true),
+          // Left Column
+          Expanded(
+            flex: 5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hello,',
+                          style: TextStyle(
+                            color: const Color(0xFF5D4037),
+                            fontSize: screenHeight * 0.055,
+                            fontFamily: 'SF Pro',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          name,
+                          style: TextStyle(
+                            color: const Color(0xFF5D4037),
+                            fontSize: screenHeight * 0.08,
+                            fontFamily: 'SF Pro',
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Avatar
+                    Container(
+                      width: screenHeight * 0.15,
+                      height: screenHeight * 0.15,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEE7C9E).withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: screenHeight * 0.09,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: screenHeight * 0.04),
+
+                // XP Card
+                _buildXPCard(screenWidth, screenHeight, true),
+              ],
+            ),
           ),
 
-          SizedBox(width: screenWidth * 0.02),
+          SizedBox(width: screenWidth * 0.03),
 
-          // Right: Stats Section
+          // Right Column
           Expanded(
+            flex: 5,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildProfileCard(screenWidth, screenHeight, true),
-                SizedBox(height: screenHeight * 0.025),
-                _buildStatsContainer(screenWidth, screenHeight, true),
+                _buildScoreCard(screenWidth, screenHeight, averageScore, true),
+                SizedBox(height: screenHeight * 0.03),
+                _buildStatsGrid(screenWidth, screenHeight, true),
               ],
             ),
           ),
@@ -142,386 +269,313 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildScoreSection(double screenWidth, double screenHeight, int averageScore, bool isLandscape) {
-    final height = isLandscape ? screenHeight * 0.7 : screenHeight * 0.35;
-    final circleSize = isLandscape ? screenHeight * 0.35 : screenWidth * 0.44;
-    final gradientCircleSize = isLandscape ? screenHeight * 0.42 : screenWidth * 0.535;
-
-    return SizedBox(
-      width: isLandscape ? screenWidth * 0.35 : screenWidth,
-      height: height,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Decorative circles
-          _buildDecorativeCircles(screenWidth, screenHeight, isLandscape),
-
-          // Gradient background circle
-          Positioned(
-            left: isLandscape
-                ? (screenWidth * 0.35 - gradientCircleSize) / 2
-                : screenWidth * 0.235,
-            top: isLandscape
-                ? (height - gradientCircleSize) / 2
-                : screenHeight * 0.06,
-            child: Container(
-              width: gradientCircleSize,
-              height: gradientCircleSize,
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    Color(0xFFDB7D8B),
-                    Color(0xFFFFFFFF),
-                  ],
-                  stops: [0.8, 1.0],
-                  center: Alignment.center,
-                  radius: 0.5,
-                ),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-
-          // Main score circle
-          Positioned(
-            left: isLandscape
-                ? (screenWidth * 0.35 - circleSize) / 2
-                : screenWidth * 0.28,
-            top: isLandscape
-                ? (height - circleSize) / 2
-                : screenHeight * 0.08,
-            child: Container(
-              width: circleSize,
-              height: circleSize,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDB7D8B),
-                shape: BoxShape.circle,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Your Score',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isLandscape ? screenHeight * 0.05 : screenWidth * 0.049,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    '$averageScore',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isLandscape ? screenHeight * 0.18 : screenWidth * 0.2,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  Widget _buildScoreCard(double screenWidth, double screenHeight, int averageScore, bool isLandscape) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 0 : screenWidth * 0.06,
+      ),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.04 : screenWidth * 0.05),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF8F9ABA),
+            Color(0xFFA3ADCA),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8F9ABA).withValues(alpha: 0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDecorativeCircles(double screenWidth, double screenHeight, bool isLandscape) {
-    return Stack(
-      children: [
-        // Top left circle
-        Positioned(
-          left: isLandscape ? -screenWidth * 0.02 : -screenWidth * 0.08,
-          top: isLandscape ? screenHeight * 0.05 : screenHeight * 0.02,
-          child: Container(
-            width: isLandscape ? screenHeight * 0.12 : screenWidth * 0.22,
-            height: isLandscape ? screenHeight * 0.12 : screenWidth * 0.22,
-            decoration: const BoxDecoration(
-              color: Color(0xFFD3D7E0),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        // Left middle circle
-        Positioned(
-          left: isLandscape ? -screenWidth * 0.01 : screenWidth * 0.01,
-          top: isLandscape ? screenHeight * 0.35 : screenHeight * 0.15,
-          child: Container(
-            width: isLandscape ? screenHeight * 0.09 : screenWidth * 0.12,
-            height: isLandscape ? screenHeight * 0.09 : screenWidth * 0.12,
-            decoration: const BoxDecoration(
-              color: Color(0xFF8F9ABA),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        // Top right circle
-        Positioned(
-          right: isLandscape ? -screenWidth * 0.01 : screenWidth * 0.04,
-          top: isLandscape ? screenHeight * 0.08 : screenHeight * 0.025,
-          child: Container(
-            width: isLandscape ? screenHeight * 0.08 : screenWidth * 0.11,
-            height: isLandscape ? screenHeight * 0.08 : screenWidth * 0.11,
-            decoration: const BoxDecoration(
-              color: Color(0xFF8F9ABA),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        // Right middle circle
-        Positioned(
-          right: isLandscape ? -screenWidth * 0.02 : -screenWidth * 0.05,
-          top: isLandscape ? screenHeight * 0.32 : screenHeight * 0.12,
-          child: Container(
-            width: isLandscape ? screenHeight * 0.12 : screenWidth * 0.22,
-            height: isLandscape ? screenHeight * 0.12 : screenWidth * 0.22,
-            decoration: const BoxDecoration(
-              color: Color(0xFFD3D7E0),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProfileCard(double screenWidth, double screenHeight, bool isLandscape) {
-    final horizontalPadding = isLandscape ? screenWidth * 0.03 : screenWidth * 0.06;
-    final cardPadding = isLandscape ? screenHeight * 0.018 : screenWidth * 0.04;
-    final avatarSize = isLandscape ? screenHeight * 0.1 : screenWidth * 0.12;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(cardPadding),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(
-            color: const Color(0xFFDB7D8B),
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Avatar placeholder
-            Container(
-              width: avatarSize,
-              height: avatarSize,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDB7D8B),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-                size: isLandscape ? screenHeight * 0.06 : screenWidth * 0.07,
-              ),
-            ),
-            SizedBox(width: isLandscape ? screenWidth * 0.012 : screenWidth * 0.03),
-            // Name and progress
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: isLandscape ? screenHeight * 0.038 : screenWidth * 0.042,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w700,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: screenHeight * 0.006),
-                  // Progress bar
-                  Container(
-                    height: isLandscape ? screenHeight * 0.02 : screenHeight * 0.018,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black, width: 1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(9),
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: stats.progressWidth,
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFB65E6A),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: isLandscape ? screenWidth * 0.01 : screenWidth * 0.02),
-            // XP Text
-            Text(
-              '${stats.totalCorrect * 10} xp',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: isLandscape ? screenHeight * 0.032 : screenWidth * 0.032,
-                fontFamily: 'SF Pro',
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsContainer(double screenWidth, double screenHeight, bool isLandscape) {
-    return Container(
-      width: isLandscape ? null : screenWidth,
-      margin: EdgeInsets.symmetric(
-        horizontal: isLandscape ? screenWidth * 0.03 : 0,
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: isLandscape ? screenWidth * 0.02 : screenWidth * 0.06,
-        vertical: isLandscape ? screenHeight * 0.03 : screenHeight * 0.04,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFE19E),
-        borderRadius: isLandscape
-            ? BorderRadius.circular(24)
-            : const BorderRadius.vertical(
-          top: Radius.circular(54),
-        ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // First Row
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: _buildStatCard(
-                  label: 'Completion',
-                  value: '${stats.completionPercentage}%',
-                  valueColor: const Color(0xFFB65E6A),
-                  screenWidth: screenWidth,
-                  screenHeight: screenHeight,
-                  isLandscape: isLandscape,
+              Text(
+                'Average Score',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.042,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(width: isLandscape ? screenWidth * 0.015 : screenWidth * 0.04),
-              Expanded(
-                child: _buildStatCard(
-                  label: 'Total Question',
-                  value: '${stats.totalQuestions}',
-                  valueColor: const Color(0xFFB65E6A),
-                  screenWidth: screenWidth,
-                  screenHeight: screenHeight,
-                  isLandscape: isLandscape,
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isLandscape ? screenWidth * 0.015 : screenWidth * 0.025,
+                  vertical: isLandscape ? screenHeight * 0.01 : screenHeight * 0.008,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.star,
+                  color: Colors.white,
+                  size: isLandscape ? screenHeight * 0.045 : screenWidth * 0.05,
                 ),
               ),
             ],
           ),
-
-          SizedBox(height: isLandscape ? screenHeight * 0.015 : screenHeight * 0.02),
-
-          // Second Row
+          SizedBox(height: isLandscape ? screenHeight * 0.025 : screenHeight * 0.015),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: _buildStatCard(
-                  label: 'Correct',
-                  value: '${stats.totalCorrect}',
-                  valueColor: const Color(0xFF59A855),
-                  screenWidth: screenWidth,
-                  screenHeight: screenHeight,
-                  isLandscape: isLandscape,
+              Text(
+                '$averageScore',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isLandscape ? screenHeight * 0.2 : screenWidth * 0.22,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
                 ),
               ),
-              SizedBox(width: isLandscape ? screenWidth * 0.015 : screenWidth * 0.04),
-              Expanded(
-                child: _buildStatCard(
-                  label: 'Wrong',
-                  value: '${stats.totalWrong}',
-                  valueColor: const Color(0xFFF5405B),
-                  screenWidth: screenWidth,
-                  screenHeight: screenHeight,
-                  isLandscape: isLandscape,
+              Padding(
+                padding: EdgeInsets.only(bottom: isLandscape ? screenHeight * 0.02 : screenWidth * 0.02),
+                child: Text(
+                  ' pts',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: isLandscape ? screenHeight * 0.055 : screenWidth * 0.065,
+                    fontFamily: 'SF Pro',
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
+          ),
+          SizedBox(height: isLandscape ? screenHeight * 0.015 : screenHeight * 0.01),
+          Text(
+            '${stats.completedQuizzes} Quiz${stats.completedQuizzes != 1 ? 'zes' : ''} Completed',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: isLandscape ? screenHeight * 0.038 : screenWidth * 0.035,
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard({
+  Widget _buildXPCard(double screenWidth, double screenHeight, bool isLandscape) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 0 : screenWidth * 0.06,
+      ),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.03 : screenWidth * 0.045),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Experience Points',
+                style: TextStyle(
+                  color: const Color(0xFF5D4037),
+                  fontSize: isLandscape ? screenHeight * 0.042 : screenWidth * 0.04,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isLandscape ? screenWidth * 0.015 : screenWidth * 0.025,
+                  vertical: isLandscape ? screenHeight * 0.008 : screenHeight * 0.006,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${stats.totalCorrect * 10} XP',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.035,
+                    fontFamily: 'SF Pro',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isLandscape ? screenHeight * 0.02 : screenHeight * 0.015),
+          Container(
+            height: isLandscape ? screenHeight * 0.03 : screenHeight * 0.022,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: LinearProgressIndicator(
+                value: stats.progressWidth,
+                backgroundColor: Colors.transparent,
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEE7C9E)),
+              ),
+            ),
+          ),
+          SizedBox(height: isLandscape ? screenHeight * 0.012 : screenHeight * 0.008),
+          Text(
+            '${(stats.progressWidth * 100).toInt()}% Complete',
+            style: TextStyle(
+              color: const Color(0xFF8D6E63),
+              fontSize: isLandscape ? screenHeight * 0.032 : screenWidth * 0.032,
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid(double screenWidth, double screenHeight, bool isLandscape) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 0 : screenWidth * 0.06,
+      ),
+      child: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: isLandscape ? screenHeight * 0.02 : screenWidth * 0.035,
+        crossAxisSpacing: isLandscape ? screenHeight * 0.02 : screenWidth * 0.035,
+        childAspectRatio: isLandscape ? 1.4 : 1.15,
+        children: [
+          _buildStatItem(
+            icon: Icons.check_circle,
+            label: 'Correct',
+            value: '${stats.totalCorrect}',
+            color: const Color(0xFF59A855),
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            isLandscape: isLandscape,
+          ),
+          _buildStatItem(
+            icon: Icons.cancel,
+            label: 'Wrong',
+            value: '${stats.totalWrong}',
+            color: const Color(0xFFF5405B),
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            isLandscape: isLandscape,
+          ),
+          _buildStatItem(
+            icon: Icons.quiz,
+            label: 'Total Questions',
+            value: '${stats.totalQuestions}',
+            color: const Color(0xFF8F9ABA),
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            isLandscape: isLandscape,
+          ),
+          _buildStatItem(
+            icon: Icons.percent,
+            label: 'Completion',
+            value: '${stats.completionPercentage}%',
+            color: const Color(0xFFFFB74D),
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            isLandscape: isLandscape,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
     required String label,
     required String value,
-    required Color valueColor,
+    required Color color,
     required double screenWidth,
     required double screenHeight,
     required bool isLandscape,
   }) {
-    return AspectRatio(
-      aspectRatio: isLandscape ? 1.5 : 1.4,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          vertical: isLandscape ? screenHeight * 0.015 : screenHeight * 0.012,
-          horizontal: screenWidth * 0.01,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.04,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
+    return Container(
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.02 : screenWidth * 0.035),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(isLandscape ? screenHeight * 0.015 : screenWidth * 0.02),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: isLandscape ? screenHeight * 0.055 : screenWidth * 0.07,
+            ),
+          ),
+          SizedBox(height: isLandscape ? screenHeight * 0.01 : screenHeight * 0.008),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: isLandscape ? screenHeight * 0.07 : screenWidth * 0.10,
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w800,
+                height: 1.0,
               ),
             ),
-            SizedBox(height: screenHeight * 0.002),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value,
-                style: TextStyle(
-                  color: valueColor,
-                  fontSize: isLandscape ? screenHeight * 0.09 : screenWidth * 0.13,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                  height: 1.0,
-                ),
-                maxLines: 1,
+          ),
+          SizedBox(height: isLandscape ? screenHeight * 0.004 : screenHeight * 0.003),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: const Color(0xFF5D4037),
+                fontSize: isLandscape ? screenHeight * 0.03 : screenWidth * 0.031,
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w600,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

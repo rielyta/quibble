@@ -60,7 +60,6 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
         selectedAnswer = null;
       });
     } else {
-      // Quiz selesai - navigasi ke Result Screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -76,175 +75,257 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final currentQuestion = widget.questions[currentQuestionIndex];
-
     return Scaffold(
       backgroundColor: const Color(0xFFFFEAB9),
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: screenHeight * 0.04),
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final isLandscape = orientation == Orientation.landscape;
+                final screenWidth = constraints.maxWidth;
+                final screenHeight = constraints.maxHeight;
 
-              // Header
-              Row(
+                return isLandscape
+                    ? _buildLandscapeLayout(screenWidth, screenHeight)
+                    : _buildPortraitLayout(screenWidth, screenHeight);
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPortraitLayout(double screenWidth, double screenHeight) {
+    final currentQuestion = widget.questions[currentQuestionIndex];
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: screenHeight * 0.04),
+            _buildHeader(screenWidth),
+            SizedBox(height: screenHeight * 0.02),
+            _buildProgressBar(),
+            SizedBox(height: screenHeight * 0.03),
+            _buildQuestionBox(currentQuestion, screenWidth),
+            SizedBox(height: screenHeight * 0.03),
+            _buildAnswerOptions(currentQuestion, screenWidth),
+            SizedBox(height: screenHeight * 0.02),
+            _buildSubmitButton(screenWidth, screenHeight),
+            SizedBox(height: screenHeight * 0.04),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeLayout(double screenWidth, double screenHeight) {
+    final currentQuestion = widget.questions[currentQuestionIndex];
+
+    return Row(
+      children: [
+        // Left Side - Question
+        Expanded(
+          flex: 5,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, size: 30),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.category,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: screenWidth * 0.047,
-                        fontFamily: 'SF Pro',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${currentQuestionIndex + 1}/${widget.questions.length}',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: screenWidth * 0.035,
-                      fontFamily: 'SF Pro',
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  _buildHeader(screenWidth * 0.5),
+                  SizedBox(height: screenHeight * 0.03),
+                  _buildProgressBar(),
+                  SizedBox(height: screenHeight * 0.04),
+                  _buildQuestionBox(currentQuestion, screenWidth * 0.5),
                 ],
               ),
+            ),
+          ),
+        ),
 
-              SizedBox(height: screenHeight * 0.02),
+        // Right Side - Options & Submit
+        Expanded(
+          flex: 5,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: screenHeight * 0.02),
+                  _buildAnswerOptions(currentQuestion, screenWidth * 0.4),
+                  SizedBox(height: screenHeight * 0.03),
+                  _buildSubmitButton(screenWidth * 0.4, screenHeight),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-              // Progress Bar
-              Container(
-                width: double.infinity,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(11),
+  Widget _buildHeader(double screenWidth) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(Icons.arrow_back, size: screenWidth * 0.06),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            widget.category,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: screenWidth * 0.047,
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        Text(
+          '${currentQuestionIndex + 1}/${widget.questions.length}',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: screenWidth * 0.035,
+            fontFamily: 'SF Pro',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressBar() {
+    return Container(
+      width: double.infinity,
+      height: 16,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: (currentQuestionIndex + 1) / widget.questions.length,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF8F9ABA),
+            borderRadius: BorderRadius.circular(11),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuestionBox(Question currentQuestion, double screenWidth) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          width: 3,
+          color: const Color(0xFF8F9ABA),
+        ),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Text(
+        currentQuestion.question,
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: screenWidth * 0.035,
+          fontFamily: 'SF Pro',
+          fontWeight: FontWeight.w700,
+          height: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnswerOptions(Question currentQuestion, double screenWidth) {
+    return Column(
+      children: currentQuestion.options.map((option) {
+        final isSelected = selectedAnswer == option;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedAnswer = option;
+              });
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 25,
+                vertical: 18,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFFEE7C9E)
+                    : const Color(0xFFFFFFFF),
+                border: Border.all(
+                  width: 3,
+                  color: const Color(0xFFEE7C9E),
                 ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor:
-                  (currentQuestionIndex + 1) / widget.questions.length,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8F9ABA),
-                      borderRadius: BorderRadius.circular(11),
-                    ),
-                  ),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Text(
+                option,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: screenWidth * 0.035,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w700,
                 ),
               ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
 
-              SizedBox(height: screenHeight * 0.03),
-
-              // Question Box
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    width: 3,
-                    color: const Color(0xFF8F9ABA),
-                  ),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Text(
-                  currentQuestion.question,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: screenWidth * 0.035,
-                    fontFamily: 'SF Pro',
-                    fontWeight: FontWeight.w700,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-
-              SizedBox(height: screenHeight * 0.03),
-
-              // Answer Options
-              ...currentQuestion.options.map((option) {
-                final isSelected = selectedAnswer == option;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedAnswer = option;
-                      });
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 25,
-                        vertical: 18,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFFEE7C9E)
-                            : const Color(0xFFFFFFFF),
-                        border: Border.all(
-                          width: 3,
-                          color: const Color(0xFFEE7C9E
-                          )
-                        ),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Text(
-                        option,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: screenWidth * 0.035,
-                          fontFamily: 'SF Pro',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-
-              SizedBox(height: screenHeight * 0.02),
-
-
-              // Submit Button
-              Center(
-                child: SizedBox(
-                  width: screenWidth * 0.4,
-                  height: screenHeight * 0.045,
-                  child: ElevatedButton(
-                    onPressed: _checkAnswer,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEE7C9E),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Submit',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'SF Pro',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+  Widget _buildSubmitButton(double screenWidth, double screenHeight) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: 50,
+          maxHeight: screenHeight * 0.15,
+        ),
+        child: SizedBox(
+          width: screenWidth * 0.35,
+          child: ElevatedButton(
+            onPressed: _checkAnswer,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEE7C9E),
+              foregroundColor: Colors.white,
+              elevation: 5,
+              shadowColor: Colors.black45,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+                side: const BorderSide(
+                  color: Color(0xFFD6698A),
+                  width: 2,
                 ),
               ),
-
-              SizedBox(height: screenHeight * 0.04),
-            ],
+            ),
+            child: const Text(
+              'Submit',
+              style: TextStyle(
+                fontSize: 20,
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
           ),
         ),
       ),
