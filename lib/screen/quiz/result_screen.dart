@@ -645,7 +645,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         children: [
           Expanded(child: _buildHomeButton(isDarkMode, isLandscape, buttonHeight)),
           SizedBox(width: size.width * 0.015),
-          Expanded(child: _buildRetryButton(isDarkMode, isLandscape, buttonHeight)),
+
         ],
       );
     }
@@ -655,7 +655,6 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       children: [
         _buildHomeButton(isDarkMode, isLandscape, buttonHeight),
         SizedBox(height: size.height * 0.012),
-        _buildRetryButton(isDarkMode, isLandscape, buttonHeight),
       ],
     );
   }
@@ -681,11 +680,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.home_rounded, size: fontSize * 1.25),
             SizedBox(width: size.width * 0.015),
             Flexible(
               child: Text(
-                'Back to Home',
+                'Back',
                 style: TextStyle(
                   fontSize: fontSize,
                   fontFamily: 'SF Pro',
@@ -700,48 +698,4 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildRetryButton(bool isDarkMode, bool isLandscape, double height) {
-    final size = MediaQuery.of(context).size;
-    final fontSize = isLandscape ? size.height * 0.04 : 16.5;
-
-    return SizedBox(
-      height: height,
-      child: OutlinedButton(
-        onPressed: () => Navigator.pop(context),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: isDarkMode
-              ? const Color(0xFF6C5CE7)
-              : const Color(0xFF0984E3),
-          side: BorderSide(
-            color: isDarkMode
-                ? const Color(0xFF6C5CE7)
-                : const Color(0xFF0984E3),
-            width: 2.5,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.refresh_rounded, size: fontSize * 1.25),
-            SizedBox(width: size.width * 0.015),
-            Flexible(
-              child: Text(
-                'Try Again',
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
