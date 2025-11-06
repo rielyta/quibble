@@ -261,13 +261,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       ),
       decoration: BoxDecoration(
         color: isDarkMode
-            ? Colors.white.withOpacity(0.05)
-            : Colors.white.withOpacity(0.7),
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha:0.7),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDarkMode
-              ? Colors.white.withOpacity(0.1)
-              : Colors.white.withOpacity(0.5),
+              ? Colors.white.withValues(alpha:0.1)
+              : Colors.white.withValues(alpha:0.5),
           width: 1.5,
         ),
       ),
@@ -284,7 +284,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFEE7C9E).withOpacity(0.3),
+                  color: const Color(0xFFEE7C9E).withValues(alpha:0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -349,7 +349,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: scoreGradient[0].withOpacity(0.4),
+            color: scoreGradient[0].withValues(alpha:0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -366,7 +366,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 child: Text(
                   'Your Score',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.95),
+                    color: Colors.white.withValues(alpha:0.95),
                     fontSize: isLandscape ? size.height * 0.045 : size.width * 0.042,
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w600,
@@ -393,7 +393,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha:0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -440,7 +440,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               vertical: size.height * 0.008,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha:0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -469,7 +469,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFE29E).withOpacity(0.4),
+            color: const Color(0xFFFFE29E).withValues(alpha:0.4),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -481,7 +481,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           Container(
             padding: EdgeInsets.all(size.width * 0.015),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
+              color: Colors.white.withValues(alpha:0.25),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -509,7 +509,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 Text(
                   'Experience Earned!',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha:0.9),
                     fontSize: isLandscape ? size.height * 0.035 : size.width * 0.033,
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w600,
@@ -573,13 +573,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDarkMode
-              ? Colors.white.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.1),
+              ? Colors.white.withValues(alpha:0.1)
+              : Colors.grey.withValues(alpha:0.1),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.06),
+            color: Colors.black.withValues(alpha:isDarkMode ? 0.3 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -595,7 +595,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: gradientColors[0].withOpacity(0.3),
+                  color: gradientColors[0].withValues(alpha:0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -671,7 +671,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           backgroundColor: const Color(0xFF8F9ABA),
           foregroundColor: Colors.white,
           elevation: 4,
-          shadowColor: const Color(0xFF8F9ABA).withOpacity(0.4),
+          shadowColor: const Color(0xFF8F9ABA).withValues(alpha:0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
