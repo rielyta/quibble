@@ -77,8 +77,6 @@ class QuizStatsService {
   }
 }
 
-// Helper for debug prints
 void debugPrint(String message) {
-  // ignore: avoid_print
   print('[QuizStatsService] $message');
 }
