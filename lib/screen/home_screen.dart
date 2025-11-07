@@ -5,7 +5,7 @@ import '../widgets/gradient_bakground.dart';
 import '../widgets/navigation_bar.dart';
 import '../services/quiz_stats_service.dart';
 import '../model/quiz_stat.dart';
-import '../model/level_system.dart';
+import '../util/level_system.dart';
 import '../provider/theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {

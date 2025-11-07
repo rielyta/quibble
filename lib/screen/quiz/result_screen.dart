@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/quiz_stats_service.dart';
-import '../../model/level_system.dart';
+import '../../util/level_system.dart';
 import '../../provider/theme_provider.dart';
 import '../../widgets/level_up_dialog.dart';
 

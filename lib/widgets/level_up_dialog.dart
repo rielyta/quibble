@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model/level_system.dart';
+import '../util/level_system.dart';
 
 class LevelUpDialog extends StatefulWidget {
   final LevelData newLevel;
