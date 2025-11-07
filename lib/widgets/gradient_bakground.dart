@@ -24,7 +24,6 @@ class GradientBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDarkMode = context.watch<ThemeProvider>().isDarkMode;
 
-    // Default colors jika tidak disediakan
     final defaultLightColors = [
       const Color(0xFFFFF8E7),
       const Color(0xFFFFE19E),
@@ -35,7 +34,6 @@ class GradientBackground extends StatelessWidget {
       const Color(0xFF2D2D2D),
     ];
 
-    // Default stops jika tidak disediakan
     final defaultStops = stops ?? [0.3, 1.0];
 
     return Container(

@@ -44,24 +44,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5405B).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.logout,
-                  color: Color(0xFFF5405B),
-                  size: 24,
+                  color: const Color(0xFFF5405B),
+                  size: MediaQuery.of(context).size.width * 0.06,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: MediaQuery.of(context).size.width * 0.03),
               Text(
                 'Exit',
                 style: TextStyle(
                   fontFamily: 'SF Pro',
                   fontWeight: FontWeight.w700,
-                  fontSize: 20,
+                  fontSize: MediaQuery.of(context).size.width * 0.05,
                   color: isDarkMode ? Colors.white : Colors.black,
                 ),
               ),
@@ -72,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w400,
-              fontSize: 16,
+              fontSize: MediaQuery.of(context).size.width * 0.04,
               color: isDarkMode ? Colors.white70 : const Color(0xFF5D4037),
             ),
           ),
@@ -84,13 +84,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: Color(0xFF8F9ABA),
+                  color: const Color(0xFF8F9ABA),
                   fontFamily: 'SF Pro',
                   fontWeight: FontWeight.w700,
-                  fontSize: 16,
+                  fontSize: MediaQuery.of(context).size.width * 0.04,
                 ),
               ),
             ),
@@ -115,12 +115,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Exit',
                 style: TextStyle(
                   fontFamily: 'SF Pro',
                   fontWeight: FontWeight.w700,
-                  fontSize: 16,
+                  fontSize: MediaQuery.of(context).size.width * 0.04,
                 ),
               ),
             ),
@@ -141,41 +141,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final navBarHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
 
     return Scaffold(
-      body: SafeArea(
-        child: GradientBackground(
-          stops: const [0.3, 0.5],
-          child: Stack(
-            children: [
-              // Main Content
-              Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: navBarHeight + 15),
-                        child: isLandscape
-                            ? _buildLandscapeLayout(screenWidth, screenHeight, isDarkMode)
-                            : _buildPortraitLayout(screenWidth, screenHeight, isDarkMode),
+        body: SafeArea(
+          child: GradientBackground(
+            stops: const [0.3, 0.5],
+            child: Stack(
+              children: [
+                // Main Content
+                Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: navBarHeight + 15),
+                          child: isLandscape
+                              ? _buildLandscapeLayout(screenWidth, screenHeight, isDarkMode)
+                              : _buildPortraitLayout(screenWidth, screenHeight, isDarkMode),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              // Bottom Navigation Bar
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: const CustomNavigationBar(
-                  currentIndex: 2,
+                  ],
                 ),
-              ),
-            ],
+                // Bottom Navigation Bar
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: const CustomNavigationBar(
+                    currentIndex: 2,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      )
-      );
+        )
+    );
   }
 
   Widget _buildPortraitLayout(double screenWidth, double screenHeight, bool isDarkMode) {
@@ -249,6 +249,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildAvatarSection(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
     final avatarSize = isLandscape ? screenHeight * 0.35 : screenWidth * 0.40;
+    final editIconSize = isLandscape ? screenHeight * 0.05 : screenWidth * 0.045;
+    final editPadding = isLandscape ? screenHeight * 0.015 : screenWidth * 0.025;
 
     return Stack(
       alignment: Alignment.center,
@@ -302,10 +304,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Edit icon badge
         Positioned(
-          bottom: isLandscape ? 5 : 10,
-          right: isLandscape ? 5 : 10,
+          bottom: isLandscape ? screenHeight * 0.01 : screenWidth * 0.025,
+          right: isLandscape ? screenHeight * 0.01 : screenWidth * 0.025,
           child: Container(
-            padding: EdgeInsets.all(isLandscape ? 8 : 10),
+            padding: EdgeInsets.all(editPadding),
             decoration: BoxDecoration(
               color: const Color(0xFF8F9ABA),
               shape: BoxShape.circle,
@@ -319,7 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Icon(
               Icons.edit,
-              size: isLandscape ? screenHeight * 0.04 : screenWidth * 0.045,
+              size: editIconSize,
               color: Colors.white,
             ),
           ),

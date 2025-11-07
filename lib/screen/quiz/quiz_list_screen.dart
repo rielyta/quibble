@@ -16,8 +16,6 @@ class QuizListScreen extends StatefulWidget {
 }
 
 class _QuizListScreenState extends State<QuizListScreen> {
-
-
   late final BoxDecoration _lightDecoration;
   late final BoxDecoration _darkDecoration;
 
@@ -51,12 +49,11 @@ class _QuizListScreenState extends State<QuizListScreen> {
       ),
     );
 
-    // Preload images in background
+
     _preloadImagesAsync();
   }
 
   Future<void> _preloadImagesAsync() async {
-    // Use addPostFrameCallback to avoid blocking initial render
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
@@ -68,15 +65,12 @@ class _QuizListScreenState extends State<QuizListScreen> {
         ]);
 
         if (mounted) {
-          setState(() {
-          });
+          setState(() {});
         }
       } catch (e) {
         debugPrint('Error preloading images: $e');
-        // Set as preloaded anyway to show UI
         if (mounted) {
-          setState(() {
-          });
+          setState(() {});
         }
       }
     });
@@ -146,13 +140,12 @@ class _QuizListScreenState extends State<QuizListScreen> {
     final contentSpacing = isLandscape ? screenHeight * 0.06 : screenHeight * 0.03;
     final cardSpacing = isLandscape ? screenHeight * 0.03 : screenHeight * 0.02;
     final horizontalPadding = isLandscape ? screenWidth * 0.12 : screenWidth * 0.08;
+    final bottomPadding = navBarHeight + (isLandscape ? screenHeight * 0.02 : screenHeight * 0.012);
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Padding(
-        padding: EdgeInsets.only(
-          bottom: navBarHeight + (isLandscape ? 15 : 10),
-        ),
+        padding: EdgeInsets.only(bottom: bottomPadding),
         child: Column(
           children: [
             SizedBox(height: topSpacing),
@@ -228,6 +221,8 @@ class _QuizListScreenState extends State<QuizListScreen> {
     final headerIconInnerSize = isLandscape ? screenHeight * 0.08 : screenWidth * 0.1;
     final titleFontSize = isLandscape ? screenHeight * 0.09 : screenWidth * 0.08;
     final subtitleFontSize = isLandscape ? screenHeight * 0.045 : screenWidth * 0.038;
+    final shadowBlurRadius = isLandscape ? screenHeight * 0.023 : screenWidth * 0.04;
+    final shadowOffset = isLandscape ? screenHeight * 0.008 : screenHeight * 0.006;
 
     return Column(
       children: [
@@ -241,8 +236,8 @@ class _QuizListScreenState extends State<QuizListScreen> {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.15),
-                blurRadius: isLandscape ? 18 : 15,
-                offset: Offset(0, isLandscape ? 6 : 5),
+                blurRadius: shadowBlurRadius,
+                offset: Offset(0, shadowOffset),
               ),
             ],
           ),

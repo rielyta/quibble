@@ -32,10 +32,15 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
   void _checkAnswer() {
     if (selectedAnswerIndex == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an answer'),
-          backgroundColor: Color(0xFFEE7C9E),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(
+            'Please select an answer',
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width * 0.035,
+            ),
+          ),
+          backgroundColor: const Color(0xFFEE7C9E),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -118,15 +123,15 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: screenHeight * 0.04),
-            _buildHeader(screenWidth, isDarkMode),
+            _buildHeader(screenWidth, screenHeight, isDarkMode, false),
             SizedBox(height: screenHeight * 0.02),
-            _buildProgressBar(),
+            _buildProgressBar(screenHeight),
             SizedBox(height: screenHeight * 0.03),
-            _buildQuestionBox(currentQuestion, screenWidth, isDarkMode),
+            _buildQuestionBox(currentQuestion, screenWidth, screenHeight, isDarkMode, false),
             SizedBox(height: screenHeight * 0.03),
-            _buildAnswerOptions(currentQuestion, screenWidth, isDarkMode),
+            _buildAnswerOptions(currentQuestion, screenWidth, screenHeight, isDarkMode, false),
             SizedBox(height: screenHeight * 0.02),
-            _buildSubmitButton(screenWidth, screenHeight),
+            _buildSubmitButton(screenWidth, screenHeight, false),
             SizedBox(height: screenHeight * 0.04),
           ],
         ),
@@ -148,11 +153,11 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(screenWidth * 0.5, isDarkMode),
+                  _buildHeader(screenWidth, screenHeight, isDarkMode, true),
                   SizedBox(height: screenHeight * 0.03),
-                  _buildProgressBar(),
+                  _buildProgressBar(screenHeight),
                   SizedBox(height: screenHeight * 0.04),
-                  _buildQuestionBox(currentQuestion, screenWidth * 0.5, isDarkMode),
+                  _buildQuestionBox(currentQuestion, screenWidth, screenHeight, isDarkMode, true),
                 ],
               ),
             ),
@@ -169,9 +174,9 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: screenHeight * 0.02),
-                  _buildAnswerOptions(currentQuestion, screenWidth * 0.4, isDarkMode),
+                  _buildAnswerOptions(currentQuestion, screenWidth, screenHeight, isDarkMode, true),
                   SizedBox(height: screenHeight * 0.03),
-                  _buildSubmitButton(screenWidth * 0.4, screenHeight),
+                  _buildSubmitButton(screenWidth, screenHeight, true),
                 ],
               ),
             ),
@@ -181,24 +186,24 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildHeader(double screenWidth, bool isDarkMode) {
+  Widget _buildHeader(double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape) {
     return Row(
       children: [
         IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Icon(
             Icons.arrow_back,
-            size: screenWidth * 0.06,
+            size: isLandscape ? screenHeight * 0.06 : screenWidth * 0.06,
             color: isDarkMode ? Colors.white : Colors.black,
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: screenWidth * 0.02),
         Expanded(
           child: Text(
             widget.category,
             style: TextStyle(
               color: isDarkMode ? Colors.white : Colors.black,
-              fontSize: screenWidth * 0.047,
+              fontSize: isLandscape ? screenHeight * 0.05 : screenWidth * 0.047,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w700,
             ),
@@ -208,7 +213,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
           '${currentQuestionIndex + 1}/${widget.questions.length}',
           style: TextStyle(
             color: isDarkMode ? Colors.white70 : Colors.black,
-            fontSize: screenWidth * 0.035,
+            fontSize: isLandscape ? screenHeight * 0.038 : screenWidth * 0.035,
             fontFamily: 'SF Pro',
             fontWeight: FontWeight.w600,
           ),
@@ -217,10 +222,10 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildProgressBar() {
+  Widget _buildProgressBar(double screenHeight) {
     return Container(
       width: double.infinity,
-      height: 16,
+      height: screenHeight * 0.02,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(11),
@@ -238,10 +243,10 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildQuestionBox(Question currentQuestion, double screenWidth, bool isDarkMode) {
+  Widget _buildQuestionBox(Question currentQuestion, double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.03 : screenWidth * 0.05),
       decoration: BoxDecoration(
         color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
         border: Border.all(
@@ -254,7 +259,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
         currentQuestion.question,
         style: TextStyle(
           color: isDarkMode ? Colors.white : Colors.black,
-          fontSize: screenWidth * 0.035,
+          fontSize: isLandscape ? screenHeight * 0.038 : screenWidth * 0.038,
           fontFamily: 'SF Pro',
           fontWeight: FontWeight.w700,
           height: 1.5,
@@ -263,7 +268,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildAnswerOptions(Question question, double screenWidth, bool isDarkMode) {
+  Widget _buildAnswerOptions(Question question, double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape) {
     return Column(
       children: List.generate(
         question.options.length,
@@ -273,21 +278,23 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
           isSelected: selectedAnswerIndex == index,
           onTap: () => _selectAnswer(index),
           screenWidth: screenWidth,
+          screenHeight: screenHeight,
           isDarkMode: isDarkMode,
+          isLandscape: isLandscape,
         ),
       ),
     );
   }
 
-  Widget _buildSubmitButton(double screenWidth, double screenHeight) {
+  Widget _buildSubmitButton(double screenWidth, double screenHeight, bool isLandscape) {
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: 50,
+          minHeight: isLandscape ? screenHeight * 0.08 : screenHeight * 0.06,
           maxHeight: screenHeight * 0.15,
         ),
         child: SizedBox(
-          width: screenWidth * 0.35,
+          width: isLandscape ? screenWidth * 0.25 : screenWidth * 0.35,
           child: ElevatedButton(
             onPressed: _checkAnswer,
             style: ElevatedButton.styleFrom(
@@ -295,7 +302,10 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
               foregroundColor: Colors.white,
               elevation: 5,
               shadowColor: Colors.black45,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+              padding: EdgeInsets.symmetric(
+                vertical: isLandscape ? screenHeight * 0.02 : screenHeight * 0.018,
+                horizontal: screenWidth * 0.04,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
                 side: const BorderSide(
@@ -304,10 +314,10 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
                 ),
               ),
             ),
-            child: const Text(
+            child: Text(
               'Submit',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.048,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
@@ -320,13 +330,14 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
   }
 }
 
-// ⭐ Extracted answer option widget for better performance
 class _AnswerOption extends StatelessWidget {
   final String option;
   final bool isSelected;
   final VoidCallback onTap;
   final double screenWidth;
+  final double screenHeight;
   final bool isDarkMode;
+  final bool isLandscape;
 
   const _AnswerOption({
     super.key,
@@ -334,22 +345,24 @@ class _AnswerOption extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.screenWidth,
+    required this.screenHeight,
     required this.isDarkMode,
+    required this.isLandscape,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: EdgeInsets.only(bottom: isLandscape ? screenHeight * 0.02 : screenHeight * 0.018),
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeInOut,
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 25,
-            vertical: 18,
+          padding: EdgeInsets.symmetric(
+            horizontal: isLandscape ? screenWidth * 0.04 : screenWidth * 0.06,
+            vertical: isLandscape ? screenHeight * 0.025 : screenHeight * 0.022,
           ),
           decoration: BoxDecoration(
             color: isSelected
@@ -367,7 +380,7 @@ class _AnswerOption extends StatelessWidget {
               color: isSelected
                   ? Colors.white
                   : (isDarkMode ? Colors.white : Colors.black),
-              fontSize: screenWidth * 0.035,
+              fontSize: isLandscape ? screenHeight * 0.038 : screenWidth * 0.038,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w700,
             ),

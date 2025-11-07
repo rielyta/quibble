@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(10.0),
+                            padding: EdgeInsets.all(screenWidth * 0.025),
                             child: Image.asset(
                               'assets/images/image.png',
                               fit: BoxFit.contain,
@@ -278,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(10.0),
+                                padding: EdgeInsets.all(screenHeight * 0.025),
                                 child: Image.asset(
                                   'assets/images/image.png',
                                   fit: BoxFit.contain,
@@ -345,7 +345,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // Form Section
   Widget _buildFormSection(BuildContext context, double screenWidth, double screenHeight, bool isLandscape) {
     final horizontalPadding = isLandscape ? screenWidth * 0.08 : screenWidth * 0.09;
-    final maxWidth = isLandscape ? 400.0 : double.infinity;
+    final maxWidth = isLandscape ? screenWidth * 0.35 : double.infinity;
 
     return Container(
       constraints: BoxConstraints(maxWidth: maxWidth),
@@ -397,7 +397,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.04,
+                  horizontal: isLandscape ? screenWidth * 0.02 : screenWidth * 0.04,
                   vertical: screenHeight * 0.015,
                 ),
               ),
@@ -422,9 +422,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter your name'),
-                      backgroundColor: Color(0xFF6984D0),
+                    SnackBar(
+                      content: Text(
+                        'Please enter your name',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.035,
+                        ),
+                      ),
+                      backgroundColor: const Color(0xFF6984D0),
                     ),
                   );
                 }

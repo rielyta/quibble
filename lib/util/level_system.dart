@@ -35,7 +35,7 @@ class LevelSystem {
   static double getProgressToNextLevel(int totalXP) {
     final currentLevel = getCurrentLevel(totalXP);
     if (currentLevel.level == levels.last.level) {
-      return 1.0; // Max level
+      return 1.0;
     }
 
     final xpInCurrentLevel = totalXP - currentLevel.minXP;
@@ -48,7 +48,7 @@ class LevelSystem {
   static LevelData? getNextLevel(int totalXP) {
     final currentLevel = getCurrentLevel(totalXP);
     if (currentLevel.level == levels.last.level) {
-      return null; // Already at max level
+      return null;
     }
 
     final nextLevelIndex = levels.indexWhere((l) => l.level == currentLevel.level) + 1;

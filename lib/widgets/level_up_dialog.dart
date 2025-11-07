@@ -43,7 +43,6 @@ class _LevelUpDialogState extends State<LevelUpDialog>
       ),
     );
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _controller.forward();
     });
@@ -57,9 +56,6 @@ class _LevelUpDialogState extends State<LevelUpDialog>
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-
     return RepaintBoundary(
       child: Dialog(
         backgroundColor: Colors.transparent,
@@ -71,32 +67,70 @@ class _LevelUpDialogState extends State<LevelUpDialog>
               child: child,
             );
           },
-          // ⭐ Build content once, reuse it
-          child: _buildDialogContent(screenWidth),
+          child: _DialogContent(
+            newLevel: widget.newLevel,
+            rotateAnimation: _rotateAnimation,
+            onContinue: widget.onContinue,
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildDialogContent(double screenWidth) {
+class _DialogContent extends StatelessWidget {
+  final LevelData newLevel;
+  final Animation<double> rotateAnimation;
+  final VoidCallback onContinue;
+
+  const _DialogContent({
+    required this.newLevel,
+    required this.rotateAnimation,
+    required this.onContinue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final baseSize = MediaQuery.of(context).size.shortestSide;
+
+    final dialogWidth = baseSize * 0.85;
+    final padding = baseSize * 0.06;
+    final borderRadius = baseSize * 0.08;
+    final iconSize = baseSize * 0.15;
+    final titleFontSize = baseSize * 0.08;
+    final levelFontSize = baseSize * 0.07;
+    final subtitleFontSize = baseSize * 0.06;
+    final messageFontSize = baseSize * 0.04;
+    final levelPaddingH = baseSize * 0.06;
+    final levelPaddingV = baseSize * 0.03;
+    final levelBorderRadius = baseSize * 0.05;
+    final dividerWidth = baseSize * 0.25;
+    final buttonPaddingH = baseSize * 0.12;
+    final buttonPaddingV = baseSize * 0.04;
+    final buttonBorderRadius = baseSize * 0.04;
+    final buttonFontSize = baseSize * 0.045;
+    final spacingSmall = baseSize * 0.02;
+    final spacingMedium = baseSize * 0.04;
+    final spacingLarge = baseSize * 0.06;
+
     return Container(
-      width: screenWidth * 0.85,
-      padding: const EdgeInsets.all(24),
+      width: dialogWidth,
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(widget.newLevel.color),
-            Color(widget.newLevel.color).withValues(alpha: 0.8),
+            Color(newLevel.color),
+            Color(newLevel.color).withValues(alpha: 0.8),
           ],
         ),
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Color(widget.newLevel.color).withValues(alpha: 0.5),
-            blurRadius: 30,
-            spreadRadius: 5,
+            color: Color(newLevel.color).withValues(alpha: 0.5),
+            blurRadius: baseSize * 0.075,
+            spreadRadius: baseSize * 0.0125,
           ),
         ],
       ),
@@ -105,122 +139,122 @@ class _LevelUpDialogState extends State<LevelUpDialog>
         children: [
           // Sparkle icon with rotation
           AnimatedBuilder(
-            animation: _rotateAnimation,
+            animation: rotateAnimation,
             builder: (context, child) {
               return Transform.rotate(
-                angle: _rotateAnimation.value * 6.28,
+                angle: rotateAnimation.value * 6.28,
                 child: child,
               );
             },
-            child: const Icon(
+            child: Icon(
               Icons.auto_awesome,
-              size: 60,
+              size: iconSize,
               color: Colors.white,
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: spacingMedium),
 
           // Level Up Text
-          const Text(
+          Text(
             'LEVEL UP!',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 32,
+              fontSize: titleFontSize,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
             ),
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: spacingSmall),
 
           // Level number
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 12,
+            padding: EdgeInsets.symmetric(
+              horizontal: levelPaddingH,
+              vertical: levelPaddingV,
             ),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(levelBorderRadius),
             ),
             child: Text(
-              'Level ${widget.newLevel.level}',
-              style: const TextStyle(
+              'Level ${newLevel.level}',
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 28,
+                fontSize: levelFontSize,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w800,
               ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: spacingMedium),
 
           // Title
           Text(
-            widget.newLevel.title,
-            style: const TextStyle(
+            newLevel.title,
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: subtitleFontSize,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w600,
               letterSpacing: 1,
             ),
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: spacingLarge),
 
           // Divider
           Container(
             height: 2,
-            width: 100,
+            width: dividerWidth,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(1),
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: spacingMedium),
 
           // Motivational message
           Text(
-            _getMotivationalMessage(widget.newLevel.level),
+            _getMotivationalMessage(newLevel.level),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 16,
+              fontSize: messageFontSize,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w500,
               height: 1.4,
             ),
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: spacingLarge),
 
           // Continue button
           ElevatedButton(
             onPressed: () {
-              widget.onContinue();
+              onContinue();
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: Color(widget.newLevel.color),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 48,
-                vertical: 16,
+              foregroundColor: Color(newLevel.color),
+              padding: EdgeInsets.symmetric(
+                horizontal: buttonPaddingH,
+                vertical: buttonPaddingV,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(buttonBorderRadius),
               ),
               elevation: 5,
             ),
-            child: const Text(
+            child: Text(
               'Continue',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: buttonFontSize,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w700,
               ),

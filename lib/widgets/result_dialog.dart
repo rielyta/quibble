@@ -30,8 +30,8 @@ class ResultDialog extends StatelessWidget {
                   maxHeight: isLandscape ? screenHeight * 0.85 : screenHeight * 0.7,
                 ),
                 padding: EdgeInsets.symmetric(
-                  vertical: isLandscape ? 20 : 40,
-                  horizontal: 20,
+                  vertical: isLandscape ? screenHeight * 0.025 : screenHeight * 0.05,
+                  horizontal: screenWidth * 0.04,
                 ),
                 decoration: BoxDecoration(
                   color: isCorrect ? const Color(0xFFF6E1E5) : const Color(0xFFDDE5FA),
@@ -57,15 +57,15 @@ class ResultDialog extends StatelessWidget {
             isCorrect ? 'CORRECT!' : 'WRONG!',
             style: TextStyle(
               color: isCorrect ? const Color(0xFF58A754) : const Color(0xFFF5405B),
-              fontSize: 48,
+              fontSize: screenWidth * 0.12,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 60),
-          _buildImage(screenWidth * 0.5),
-          const SizedBox(height: 60),
-          _buildNextButton(),
+          SizedBox(height: screenHeight * 0.075),
+          _buildImage(screenWidth * 0.5, screenHeight),
+          SizedBox(height: screenHeight * 0.075),
+          _buildNextButton(screenWidth, screenHeight, false),
         ],
       ),
     );
@@ -87,28 +87,28 @@ class ResultDialog extends StatelessWidget {
                   isCorrect ? 'CORRECT!' : 'WRONG!',
                   style: TextStyle(
                     color: isCorrect ? const Color(0xFF58A754) : const Color(0xFFF5405B),
-                    fontSize: 36,
+                    fontSize: screenHeight * 0.08,
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
-                _buildNextButton(),
+                SizedBox(height: screenHeight * 0.03),
+                _buildNextButton(screenWidth, screenHeight, true),
               ],
             ),
           ),
-          const SizedBox(width: 20),
+          SizedBox(width: screenWidth * 0.03),
           Expanded(
             flex: 5,
-            child: _buildImage(screenHeight * 0.5),
+            child: _buildImage(screenHeight * 0.5, screenHeight),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildImage(double size) {
+  Widget _buildImage(double size, double screenHeight) {
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxWidth: size,
@@ -123,23 +123,25 @@ class ResultDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildNextButton() {
+  Widget _buildNextButton(double screenWidth, double screenHeight, bool isLandscape) {
     return ElevatedButton(
       onPressed: onNext,
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-        isCorrect ? const Color(0xFFEE7C9E) : const Color(0xFF8F9ABA),
+        backgroundColor: isCorrect ? const Color(0xFFEE7C9E) : const Color(0xFF8F9ABA),
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
+        padding: EdgeInsets.symmetric(
+          vertical: isLandscape ? screenHeight * 0.015 : screenHeight * 0.015,
+          horizontal: isLandscape ? screenWidth * 0.05 : screenWidth * 0.08,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
         elevation: 3,
       ),
-      child: const Text(
+      child: Text(
         'Next',
         style: TextStyle(
-          fontSize: 20,
+          fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.05,
           fontFamily: 'SF Pro',
           fontWeight: FontWeight.w700,
         ),

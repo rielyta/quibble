@@ -88,13 +88,14 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
-    final size = MediaQuery.of(context).size;
-    final isLandscape = size.width > size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       body: Container(
-        width: size.width,
-        height: size.height,
+        width: screenWidth,
+        height: screenHeight,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -116,16 +117,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           child: FadeTransition(
             opacity: _fadeAnimation,
             child: isLandscape
-                ? _buildLandscapeLayout(isDarkMode)
-                : _buildPortraitLayout(isDarkMode),
+                ? _buildLandscapeLayout(screenWidth, screenHeight, isDarkMode)
+                : _buildPortraitLayout(screenWidth, screenHeight, isDarkMode),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPortraitLayout(bool isDarkMode) {
-    final size = MediaQuery.of(context).size;
+  Widget _buildPortraitLayout(double screenWidth, double screenHeight, bool isDarkMode) {
     final wrongAnswers = widget.totalQuestions - widget.correctAnswers;
     final score = ((widget.correctAnswers / widget.totalQuestions) * 100).round();
     final earnedXP = widget.correctAnswers * 10;
@@ -135,8 +135,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.05,
-            vertical: size.height * 0.02,
+            horizontal: screenWidth * 0.05,
+            vertical: screenHeight * 0.02,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -145,35 +145,35 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(height: size.height * 0.01),
+                SizedBox(height: screenHeight * 0.01),
 
                 // Animated Header
                 ScaleTransition(
                   scale: _scaleAnimation,
-                  child: _buildHeader(isDarkMode, false),
+                  child: _buildHeader(screenWidth, screenHeight, isDarkMode, false),
                 ),
 
-                SizedBox(height: size.height * 0.025),
+                SizedBox(height: screenHeight * 0.025),
 
                 // Main Score Display
-                _buildMainScoreCard(score, isDarkMode, false),
+                _buildMainScoreCard(screenWidth, screenHeight, score, isDarkMode, false),
 
-                SizedBox(height: size.height * 0.02),
+                SizedBox(height: screenHeight * 0.02),
 
                 // XP Badge
-                _buildXPBadge(earnedXP, isDarkMode, false),
+                _buildXPBadge(screenWidth, screenHeight, earnedXP, isDarkMode, false),
 
-                SizedBox(height: size.height * 0.02),
+                SizedBox(height: screenHeight * 0.02),
 
                 // Stats Row
-                _buildStatsRow(wrongAnswers, isDarkMode, false),
+                _buildStatsRow(screenWidth, screenHeight, wrongAnswers, isDarkMode, false),
 
-                SizedBox(height: size.height * 0.025),
+                SizedBox(height: screenHeight * 0.025),
 
                 // Action Buttons
-                _buildActionButtons(isDarkMode, false),
+                _buildActionButtons(screenWidth, screenHeight, isDarkMode, false),
 
-                SizedBox(height: size.height * 0.02),
+                SizedBox(height: screenHeight * 0.02),
               ],
             ),
           ),
@@ -182,8 +182,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildLandscapeLayout(bool isDarkMode) {
-    final size = MediaQuery.of(context).size;
+  Widget _buildLandscapeLayout(double screenWidth, double screenHeight, bool isDarkMode) {
     final wrongAnswers = widget.totalQuestions - widget.correctAnswers;
     final score = ((widget.correctAnswers / widget.totalQuestions) * 100).round();
     final earnedXP = widget.correctAnswers * 10;
@@ -193,8 +192,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.04,
-            vertical: size.height * 0.03,
+            horizontal: screenWidth * 0.04,
+            vertical: screenHeight * 0.03,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -206,10 +205,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 // Header
                 ScaleTransition(
                   scale: _scaleAnimation,
-                  child: _buildHeader(isDarkMode, true),
+                  child: _buildHeader(screenWidth, screenHeight, isDarkMode, true),
                 ),
 
-                SizedBox(height: size.height * 0.02),
+                SizedBox(height: screenHeight * 0.02),
 
                 // Main Content Row
                 Row(
@@ -218,10 +217,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                     // Left Column - Score
                     Expanded(
                       flex: 4,
-                      child: _buildMainScoreCard(score, isDarkMode, true),
+                      child: _buildMainScoreCard(screenWidth, screenHeight, score, isDarkMode, true),
                     ),
 
-                    SizedBox(width: size.width * 0.02),
+                    SizedBox(width: screenWidth * 0.02),
 
                     // Right Column - Stats & Actions
                     Expanded(
@@ -229,18 +228,18 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildXPBadge(earnedXP, isDarkMode, true),
-                          SizedBox(height: size.height * 0.015),
-                          _buildStatsRow(wrongAnswers, isDarkMode, true),
-                          SizedBox(height: size.height * 0.02),
-                          _buildActionButtons(isDarkMode, true),
+                          _buildXPBadge(screenWidth, screenHeight, earnedXP, isDarkMode, true),
+                          SizedBox(height: screenHeight * 0.015),
+                          _buildStatsRow(screenWidth, screenHeight, wrongAnswers, isDarkMode, true),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildActionButtons(screenWidth, screenHeight, isDarkMode, true),
                         ],
                       ),
                     ),
                   ],
                 ),
 
-                SizedBox(height: size.height * 0.02),
+                SizedBox(height: screenHeight * 0.02),
               ],
             ),
           ),
@@ -249,25 +248,24 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildHeader(bool isDarkMode, bool isLandscape) {
-    final size = MediaQuery.of(context).size;
-    final iconSize = isLandscape ? size.height * 0.07 : size.width * 0.1;
-    final titleSize = isLandscape ? size.height * 0.06 : size.width * 0.065;
+  Widget _buildHeader(double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape) {
+    final iconSize = isLandscape ? screenHeight * 0.07 : screenWidth * 0.1;
+    final titleSize = isLandscape ? screenHeight * 0.06 : screenWidth * 0.065;
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
-        vertical: isLandscape ? size.height * 0.015 : size.height * 0.012,
+        horizontal: screenWidth * 0.04,
+        vertical: isLandscape ? screenHeight * 0.015 : screenHeight * 0.012,
       ),
       decoration: BoxDecoration(
         color: isDarkMode
             ? Colors.white.withValues(alpha: 0.05)
-            : Colors.white.withValues(alpha:0.7),
+            : Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDarkMode
-              ? Colors.white.withValues(alpha:0.1)
-              : Colors.white.withValues(alpha:0.5),
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
@@ -284,7 +282,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFEE7C9E).withValues(alpha:0.3),
+                  color: const Color(0xFFEE7C9E).withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -296,7 +294,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               size: iconSize * 0.7,
             ),
           ),
-          SizedBox(width: size.width * 0.025),
+          SizedBox(width: screenWidth * 0.025),
           Flexible(
             child: Text(
               'Quiz Complete!',
@@ -315,10 +313,9 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildMainScoreCard(int score, bool isDarkMode, bool isLandscape) {
-    final size = MediaQuery.of(context).size;
-    final circleSize = isLandscape ? size.height * 0.25 : size.width * 0.38;
-    final scoreSize = isLandscape ? size.height * 0.15 : size.width * 0.18;
+  Widget _buildMainScoreCard(double screenWidth, double screenHeight, int score, bool isDarkMode, bool isLandscape) {
+    final circleSize = isLandscape ? screenHeight * 0.25 : screenWidth * 0.38;
+    final scoreSize = isLandscape ? screenHeight * 0.15 : screenWidth * 0.18;
 
     List<Color> scoreGradient;
     IconData scoreIcon;
@@ -339,7 +336,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     }
 
     return Container(
-      padding: EdgeInsets.all(isLandscape ? size.height * 0.03 : size.width * 0.05),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.03 : screenWidth * 0.05),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -349,7 +346,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: scoreGradient[0].withValues(alpha:0.4),
+            color: scoreGradient[0].withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -366,8 +363,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 child: Text(
                   'Your Score',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha:0.95),
-                    fontSize: isLandscape ? size.height * 0.045 : size.width * 0.042,
+                    color: Colors.white.withValues(alpha: 0.95),
+                    fontSize: isLandscape ? screenHeight * 0.045 : screenWidth * 0.042,
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w600,
                   ),
@@ -377,12 +374,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               Icon(
                 scoreIcon,
                 color: Colors.white,
-                size: isLandscape ? size.height * 0.055 : size.width * 0.07,
+                size: isLandscape ? screenHeight * 0.055 : screenWidth * 0.07,
               ),
             ],
           ),
 
-          SizedBox(height: isLandscape ? size.height * 0.015 : size.height * 0.012),
+          SizedBox(height: isLandscape ? screenHeight * 0.015 : screenHeight * 0.012),
 
           // Score Circle
           Container(
@@ -393,7 +390,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha:0.15),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -431,23 +428,23 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             ),
           ),
 
-          SizedBox(height: isLandscape ? size.height * 0.015 : size.height * 0.012),
+          SizedBox(height: isLandscape ? screenHeight * 0.015 : screenHeight * 0.012),
 
           // Score Message
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: size.width * 0.03,
-              vertical: size.height * 0.008,
+              horizontal: screenWidth * 0.03,
+              vertical: screenHeight * 0.008,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               scoreLabel,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: isLandscape ? size.height * 0.04 : size.width * 0.04,
+                fontSize: isLandscape ? screenHeight * 0.04 : screenWidth * 0.04,
                 fontFamily: 'SF Pro',
                 fontWeight: FontWeight.w700,
               ),
@@ -458,18 +455,16 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildXPBadge(int earnedXP, bool isDarkMode, bool isLandscape) {
-    final size = MediaQuery.of(context).size;
-
+  Widget _buildXPBadge(double screenWidth, double screenHeight, int earnedXP, bool isDarkMode, bool isLandscape) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isLandscape ? size.height * 0.025 : size.width * 0.04),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.025 : screenWidth * 0.04),
       decoration: BoxDecoration(
-        color: Color(0xFFEFBB4B),
+        color: const Color(0xFFEFBB4B),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFE29E).withValues(alpha:0.4),
+            color: const Color(0xFFFFE29E).withValues(alpha: 0.4),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -479,18 +474,18 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(size.width * 0.015),
+            padding: EdgeInsets.all(isLandscape ? screenHeight * 0.02 : screenWidth * 0.015),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.25),
+              color: Colors.white.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               Icons.bolt_rounded,
               color: Colors.white,
-              size: isLandscape ? size.height * 0.055 : size.width * 0.07,
+              size: isLandscape ? screenHeight * 0.055 : screenWidth * 0.07,
             ),
           ),
-          SizedBox(width: size.width * 0.025),
+          SizedBox(width: screenWidth * 0.025),
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +495,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   '+$earnedXP XP',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isLandscape ? size.height * 0.06 : size.width * 0.065,
+                    fontSize: isLandscape ? screenHeight * 0.06 : screenWidth * 0.065,
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w900,
                     height: 1.0,
@@ -509,8 +504,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 Text(
                   'Experience Earned!',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha:0.9),
-                    fontSize: isLandscape ? size.height * 0.035 : size.width * 0.033,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.033,
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w600,
                   ),
@@ -524,13 +519,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildStatsRow(int wrongAnswers, bool isDarkMode, bool isLandscape) {
-    final size = MediaQuery.of(context).size;
-
+  Widget _buildStatsRow(double screenWidth, double screenHeight, int wrongAnswers, bool isDarkMode, bool isLandscape) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
             icon: Icons.check_circle_rounded,
             label: 'Correct',
             value: widget.correctAnswers,
@@ -539,9 +534,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             isLandscape: isLandscape,
           ),
         ),
-        SizedBox(width: isLandscape ? size.width * 0.015 : size.width * 0.025),
+        SizedBox(width: isLandscape ? screenWidth * 0.015 : screenWidth * 0.025),
         Expanded(
           child: _buildStatCard(
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
             icon: Icons.cancel_rounded,
             label: 'Wrong',
             value: wrongAnswers,
@@ -555,6 +552,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
 
   Widget _buildStatCard({
+    required double screenWidth,
+    required double screenHeight,
     required IconData icon,
     required String label,
     required int value,
@@ -562,24 +561,20 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     required bool isDarkMode,
     required bool isLandscape,
   }) {
-    final size = MediaQuery.of(context).size;
-
     return Container(
-      padding: EdgeInsets.all(isLandscape ? size.height * 0.02 : size.width * 0.035),
+      padding: EdgeInsets.all(isLandscape ? screenHeight * 0.02 : screenWidth * 0.035),
       decoration: BoxDecoration(
-        color: isDarkMode
-            ? const Color(0xFF1E1E1E)
-            : Colors.white,
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDarkMode
-              ? Colors.white.withValues(alpha:0.1)
-              : Colors.grey.withValues(alpha:0.1),
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.grey.withValues(alpha: 0.1),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:isDarkMode ? 0.3 : 0.06),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -589,13 +584,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(isLandscape ? size.height * 0.015 : size.width * 0.025),
+            padding: EdgeInsets.all(isLandscape ? screenHeight * 0.015 : screenWidth * 0.025),
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: gradientColors),
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: gradientColors[0].withValues(alpha:0.3),
+                  color: gradientColors[0].withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -604,10 +599,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             child: Icon(
               icon,
               color: Colors.white,
-              size: isLandscape ? size.height * 0.05 : size.width * 0.065,
+              size: isLandscape ? screenHeight * 0.05 : screenWidth * 0.065,
             ),
           ),
-          SizedBox(height: isLandscape ? size.height * 0.01 : size.height * 0.008),
+          SizedBox(height: isLandscape ? screenHeight * 0.01 : screenHeight * 0.008),
           Text(
             '$value',
             style: TextStyle(
@@ -615,18 +610,18 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 ..shader = LinearGradient(
                   colors: gradientColors,
                 ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
-              fontSize: isLandscape ? size.height * 0.08 : size.width * 0.095,
+              fontSize: isLandscape ? screenHeight * 0.08 : screenWidth * 0.095,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w900,
               height: 1.0,
             ),
           ),
-          SizedBox(height: size.height * 0.003),
+          SizedBox(height: screenHeight * 0.003),
           Text(
             label,
             style: TextStyle(
               color: isDarkMode ? Colors.white70 : const Color(0xFF636E72),
-              fontSize: isLandscape ? size.height * 0.035 : size.width * 0.035,
+              fontSize: isLandscape ? screenHeight * 0.035 : screenWidth * 0.035,
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w600,
             ),
@@ -636,16 +631,16 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildActionButtons(bool isDarkMode, bool isLandscape) {
-    final size = MediaQuery.of(context).size;
-    final buttonHeight = isLandscape ? size.height * 0.11 : 52.0;
+  Widget _buildActionButtons(double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape) {
+    final buttonHeight = isLandscape ? screenHeight * 0.11 : screenHeight * 0.065;
 
     if (isLandscape) {
       return Row(
         children: [
-          Expanded(child: _buildHomeButton(isDarkMode, isLandscape, buttonHeight)),
-          SizedBox(width: size.width * 0.015),
-
+          Expanded(
+            child: _buildHomeButton(screenWidth, screenHeight, isDarkMode, isLandscape, buttonHeight),
+          ),
+          SizedBox(width: screenWidth * 0.015),
         ],
       );
     }
@@ -653,15 +648,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildHomeButton(isDarkMode, isLandscape, buttonHeight),
-        SizedBox(height: size.height * 0.012),
+        _buildHomeButton(screenWidth, screenHeight, isDarkMode, isLandscape, buttonHeight),
       ],
     );
   }
 
-  Widget _buildHomeButton(bool isDarkMode, bool isLandscape, double height) {
-    final size = MediaQuery.of(context).size;
-    final fontSize = isLandscape ? size.height * 0.04 : 16.5;
+  Widget _buildHomeButton(double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape, double height) {
+    final fontSize = isLandscape ? screenHeight * 0.04 : screenWidth * 0.042;
 
     return SizedBox(
       height: height,
@@ -671,7 +664,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           backgroundColor: const Color(0xFF8F9ABA),
           foregroundColor: Colors.white,
           elevation: 4,
-          shadowColor: const Color(0xFF8F9ABA).withValues(alpha:0.4),
+          shadowColor: const Color(0xFF8F9ABA).withValues(alpha: 0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -680,7 +673,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(width: size.width * 0.015),
+            SizedBox(width: screenWidth * 0.015),
             Flexible(
               child: Text(
                 'Back',
@@ -697,5 +690,4 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       ),
     );
   }
-
 }

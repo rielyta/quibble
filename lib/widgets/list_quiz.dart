@@ -18,48 +18,31 @@ class QuizCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final size = MediaQuery.of(context).size;
+    final isLandscape = size.width > size.height;
 
-    final cardHeight = isLandscape
-        ? screenHeight * 0.22
-        : screenHeight * 0.14;
+    final baseSize = size.shortestSide;
 
-    final imageSize = isLandscape
-        ? screenHeight * 0.15
-        : screenWidth * 0.20;
-
-    final titleFontSize = isLandscape
-        ? screenHeight * 0.05
-        : screenWidth * 0.05;
-
-    final subtitleFontSize = isLandscape
-        ? screenHeight * 0.035
-        : screenWidth * 0.035;
-
-    final arrowSize = isLandscape
-        ? screenHeight * 0.09
-        : screenWidth * 0.13;
-
-    final arrowIconSize = isLandscape
-        ? screenHeight * 0.045
-        : screenWidth * 0.055;
-
-    final horizontalPadding = isLandscape
-        ? screenWidth * 0.03
-        : screenWidth * 0.04;
-
-    final verticalPadding = isLandscape
-        ? screenHeight * 0.03
-        : screenHeight * 0.015;
+    final cardHeight = isLandscape ? baseSize * 0.22 : baseSize * 0.28;
+    final imageSize = baseSize * 0.20;
+    final titleFontSize = baseSize * 0.05;
+    final subtitleFontSize = baseSize * 0.035;
+    final arrowSize = baseSize * 0.13;
+    final arrowIconSize = baseSize * 0.055;
+    final horizontalPadding = baseSize * 0.04;
+    final verticalPadding = baseSize * 0.03;
+    final spacingSmall = baseSize * 0.01;
+    final spacingMedium = baseSize * 0.03;
+    final borderRadius = baseSize * 0.05;
+    final decorCircleLarge = baseSize * 0.20;
+    final decorCircleSmall = baseSize * 0.15;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: cardHeight,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(isLandscape ? 24 : 20),
+          borderRadius: BorderRadius.circular(borderRadius),
           gradient: LinearGradient(
             colors: gradientColors,
             begin: Alignment.topLeft,
@@ -68,8 +51,8 @@ class QuizCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: gradientColors[0].withValues(alpha: 0.4),
-              blurRadius: isLandscape ? 15 : 12,
-              offset: Offset(0, isLandscape ? 8 : 6),
+              blurRadius: baseSize * 0.03,
+              offset: Offset(0, baseSize * 0.015),
             ),
           ],
         ),
@@ -77,11 +60,11 @@ class QuizCard extends StatelessWidget {
           children: [
             // Decorative circles
             Positioned(
-              right: isLandscape ? -25 : -20,
-              top: isLandscape ? -25 : -20,
+              right: -decorCircleLarge * 0.25,
+              top: -decorCircleLarge * 0.25,
               child: Container(
-                width: isLandscape ? 100 : 80,
-                height: isLandscape ? 100 : 80,
+                width: decorCircleLarge,
+                height: decorCircleLarge,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.15),
@@ -89,11 +72,11 @@ class QuizCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: isLandscape ? -15 : -10,
-              bottom: isLandscape ? -15 : -10,
+              left: -decorCircleSmall * 0.15,
+              bottom: -decorCircleSmall * 0.15,
               child: Container(
-                width: isLandscape ? 75 : 60,
-                height: isLandscape ? 75 : 60,
+                width: decorCircleSmall,
+                height: decorCircleSmall,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.1),
@@ -119,13 +102,13 @@ class QuizCard extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: isLandscape ? 10 : 8,
-                          offset: Offset(0, isLandscape ? 4 : 3),
+                          blurRadius: baseSize * 0.02,
+                          offset: Offset(0, baseSize * 0.008),
                         ),
                       ],
                     ),
                     child: Padding(
-                      padding: EdgeInsets.all(isLandscape ? 4 : 3),
+                      padding: EdgeInsets.all(baseSize * 0.008),
                       child: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -138,7 +121,7 @@ class QuizCard extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(width: isLandscape ? screenWidth * 0.03 : screenWidth * 0.04),
+                  SizedBox(width: spacingMedium),
 
                   // Text Content
                   Expanded(
@@ -159,7 +142,7 @@ class QuizCard extends StatelessWidget {
                           maxLines: isLandscape ? 1 : 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: isLandscape ? screenHeight * 0.008 : screenHeight * 0.005),
+                        SizedBox(height: spacingSmall),
                         Text(
                           subtitle,
                           style: TextStyle(
@@ -177,7 +160,7 @@ class QuizCard extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(width: isLandscape ? screenWidth * 0.02 : screenWidth * 0.03),
+                  SizedBox(width: spacingMedium),
 
                   // Arrow Button
                   Container(

@@ -23,14 +23,11 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
   bool _isNavigating = false;
 
   void _handleNavigation(BuildContext context, int index) async {
-    // Prevent navigation if already on this screen
     if (index == widget.currentIndex) return;
 
-    // Prevent multiple taps
     if (_isNavigating) return;
     setState(() => _isNavigating = true);
 
-    // Call completion callback
     widget.onNavigationComplete?.call();
 
     Widget destination;
@@ -84,6 +81,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
     final isDarkMode = context.watch<ThemeProvider>().isDarkMode;
 
     final navHeight = isLandscape ? screenHeight * 0.15 : screenHeight * 0.10;
+    final shadowBlurRadius = screenWidth * 0.025;
 
     return Container(
       width: screenWidth,
@@ -96,7 +94,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.1),
-            blurRadius: 10,
+            blurRadius: shadowBlurRadius,
             offset: const Offset(0, -2),
           ),
         ],
@@ -156,6 +154,10 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
     final isActive = widget.currentIndex == index;
     final iconSize = isLandscape ? screenHeight * 0.065 : screenWidth * 0.07;
     final fontSize = isLandscape ? screenHeight * 0.035 : screenWidth * 0.032;
+    final dotSize = isLandscape ? screenHeight * 0.013 : screenWidth * 0.025;
+    final dotTopPosition = isLandscape ? -screenHeight * 0.01 : -screenHeight * 0.01;
+    final dotRightPosition = isLandscape ? screenWidth * 0.012 : screenWidth * 0.02;
+    final dotBorderWidth = isLandscape ? screenWidth * 0.003 : screenWidth * 0.005;
 
     return GestureDetector(
       onTap: () => _handleNavigation(context, index),
@@ -183,23 +185,23 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
                 // Dot indicator
                 if (isActive)
                   Positioned(
-                    top: -8,
-                    right: 8,
+                    top: dotTopPosition,
+                    right: dotRightPosition,
                     child: Container(
-                      width: 10,
-                      height: 10,
+                      width: dotSize,
+                      height: dotSize,
                       decoration: BoxDecoration(
                         color: const Color(0xFFB65E6A),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
-                          width: 2,
+                          width: dotBorderWidth,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: const Color(0xFFB65E6A).withValues(alpha: 0.4),
-                            blurRadius: 4,
-                            spreadRadius: 1,
+                            blurRadius: screenWidth * 0.01,
+                            spreadRadius: screenWidth * 0.0025,
                           )
                         ],
                       ),
