@@ -102,7 +102,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 if (context.mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const EnterScreen()),
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
                         (route) => false,
                   );
                 }

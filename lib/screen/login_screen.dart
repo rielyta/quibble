@@ -36,14 +36,14 @@ class WaveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-class EnterScreen extends StatefulWidget {
-  const EnterScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<EnterScreen> createState() => _EnterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _EnterScreenState extends State<EnterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _nameController = TextEditingController();
 
   @override

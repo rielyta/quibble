@@ -33,7 +33,7 @@ class QuibbleApp extends StatelessWidget {
           theme: themeProvider.lightTheme,
           darkTheme: themeProvider.darkTheme,
           themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          home: const EnterScreen(),
+          home: const LoginScreen(),
           builder: (context, child) {
             return MediaQuery(
               data: MediaQuery.of(context).copyWith(
