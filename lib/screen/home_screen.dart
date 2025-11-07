@@ -28,7 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     try {
-      // Load data secara parallel
       final _ = await Future.wait([
         _loadUsername(),
         _loadStats(),
@@ -73,7 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Error loading stats: $e');
-      // Use default stats if error
       if (mounted) {
         setState(() {
           stats = QuizStats();

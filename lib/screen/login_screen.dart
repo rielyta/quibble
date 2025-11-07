@@ -8,7 +8,6 @@ class WaveClipper extends CustomClipper<Path> {
     var path = Path();
     path.lineTo(0, size.height - 40);
 
-    // Create wave effect
     var firstControlPoint = Offset(size.width / 4, size.height);
     var firstEndPoint = Offset(size.width / 2, size.height - 20);
     path.quadraticBezierTo(
