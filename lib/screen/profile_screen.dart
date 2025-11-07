@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import '../widgets/gradient_bakground.dart';
 import '../widgets/navigation_bar.dart';
 import '../services/quiz_stats_service.dart';
 import '../provider/theme_provider.dart';
@@ -141,23 +142,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: isDarkMode
-                  ? [
-                const Color(0xFF1A1A1A),
-                const Color(0xFF2D2D2D),
-              ]
-                  : [
-                const Color(0xFFFFF8E7),
-                const Color(0xFFFFE19E),
-              ],
-              stops: const [0.3, 1.0],
-            ),
-          ),
+        child: GradientBackground(
+          stops: const [0.3, 0.5],
           child: Stack(
             children: [
               // Main Content
@@ -188,8 +174,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-      ),
-    );
+      )
+      );
   }
 
   Widget _buildPortraitLayout(double screenWidth, double screenHeight, bool isDarkMode) {
