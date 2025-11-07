@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import '../widgets/confirmation_dialog.dart';
 import '../widgets/gradient_bakground.dart';
 import '../widgets/navigation_bar.dart';
 import '../services/quiz_stats_service.dart';
 import '../provider/theme_provider.dart';
+import '../widgets/user_avatar.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -35,101 +37,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          backgroundColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
-          title: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5405B).withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.logout,
-                  color: const Color(0xFFF5405B),
-                  size: MediaQuery.of(context).size.width * 0.06,
-                ),
-              ),
-              SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-              Text(
-                'Exit',
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                  fontSize: MediaQuery.of(context).size.width * 0.05,
-                  color: isDarkMode ? Colors.white : Colors.black,
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'Are you sure you want to logout and reset all data?',
-            style: TextStyle(
-              fontFamily: 'SF Pro',
-              fontWeight: FontWeight.w400,
-              fontSize: MediaQuery.of(context).size.width * 0.04,
-              color: isDarkMode ? Colors.white70 : const Color(0xFF5D4037),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: const Color(0xFF8F9ABA),
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                  fontSize: MediaQuery.of(context).size.width * 0.04,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.clear();
-                await QuizStatsService.resetStats();
+      builder: (context) => ConfirmationDialog(
+        title: 'Exit',
+        message: 'Are you sure you want to logout and reset all data?',
+        icon: Icons.logout,
+        iconColor: const Color(0xFFF5405B),
+        confirmText: 'Exit',
+        cancelText: 'Cancel',
+        confirmButtonColor: const Color(0xFFF5405B),
+        isDarkMode: isDarkMode,
+        onConfirm: () async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.clear();
+          await QuizStatsService.resetStats();
 
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                        (route) => false,
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF5405B),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Exit',
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                  fontSize: MediaQuery.of(context).size.width * 0.04,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+          if (context.mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+            );
+          }
+        },
+      ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -249,86 +180,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildAvatarSection(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
     final avatarSize = isLandscape ? screenHeight * 0.35 : screenWidth * 0.40;
-    final editIconSize = isLandscape ? screenHeight * 0.05 : screenWidth * 0.045;
-    final editPadding = isLandscape ? screenHeight * 0.015 : screenWidth * 0.025;
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Decorative circles
-        Container(
-          width: avatarSize * 1.3,
-          height: avatarSize * 1.3,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFFEE7C9E).withValues(alpha: isDarkMode ? 0.2 : 0.1),
-          ),
-        ),
-        Container(
-          width: avatarSize * 1.15,
-          height: avatarSize * 1.15,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFFEE7C9E).withValues(alpha: isDarkMode ? 0.25 : 0.15),
-          ),
-        ),
-
-        // Main Avatar
-        Container(
-          width: avatarSize,
-          height: avatarSize,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFEE7C9E),
-                Color(0xFFF295B0),
-              ],
-            ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFEE7C9E).withValues(alpha: 0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.person,
-            size: avatarSize * 0.6,
-            color: Colors.white,
-          ),
-        ),
-
-        // Edit icon badge
-        Positioned(
-          bottom: isLandscape ? screenHeight * 0.01 : screenWidth * 0.025,
-          right: isLandscape ? screenHeight * 0.01 : screenWidth * 0.025,
-          child: Container(
-            padding: EdgeInsets.all(editPadding),
-            decoration: BoxDecoration(
-              color: const Color(0xFF8F9ABA),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.edit,
-              size: editIconSize,
-              color: Colors.white,
-            ),
-          ),
-        ),
+    return UserAvatar(
+      size: avatarSize,
+      decorativeCircleSizes: [
+        avatarSize * 1.3,
+        avatarSize * 1.15,
       ],
+      isDarkMode: isDarkMode,
     );
   }
+
 
   Widget _buildProfileCard(double screenWidth, double screenHeight, bool isLandscape, bool isDarkMode) {
     return Container(

@@ -78,5 +78,5 @@ class QuizStatsService {
 }
 
 void debugPrint(String message) {
-  print('[QuizStatsService] $message');
+  debugPrint('[QuizStatsService] $message');
 }

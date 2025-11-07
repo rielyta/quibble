@@ -4,6 +4,7 @@ import 'package:quibble/data/data_bible_character.dart';
 import 'package:quibble/data/data_bible_verse.dart';
 import 'package:quibble/data/data_bible_event.dart';
 import 'package:quibble/screen/quiz/quiz_screen.dart';
+import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/navigation_bar.dart';
 import '../../widgets/list_quiz.dart';
 import '../../provider/theme_provider.dart';
@@ -106,99 +107,37 @@ class _QuizListScreenState extends State<QuizListScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
-          children: [
-            Icon(
-              Icons.help_outline,
-              color: const Color(0xFFEE7C9E),
-              size: 28,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Continue Quiz?',
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white : Colors.black,
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'You have an unfinished "$category" quiz.',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white70 : Colors.black87,
-                fontFamily: 'SF Pro',
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Question ${quizProvider.currentQuestionIndex + 1} of ${quizProvider.totalQuestions}',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white60 : Colors.black54,
-                fontFamily: 'SF Pro',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _startNewQuiz(category, questions);
-            },
-            child: Text(
-              'Start Over',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white70 : Colors.grey[700],
-                fontFamily: 'SF Pro',
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+      builder: (context) => ConfirmationDialog(
+        title: 'Continue Quiz?',
+        message: 'You have an unfinished "$category" quiz.',
+        icon: Icons.help_outline,
+        iconColor: const Color(0xFFEE7C9E),
+        confirmText: 'Continue',
+        cancelText: 'Start Over',
+        confirmButtonColor: const Color(0xFFEE7C9E),
+        isDarkMode: isDarkMode,
+        additionalContent: Text(
+          'Question ${quizProvider.currentQuestionIndex + 1} of ${quizProvider.totalQuestions}',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white60 : Colors.black54,
+            fontFamily: 'SF Pro',
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Quiz sudah di-load, langsung navigate
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const QuizQuestionScreen(),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEE7C9E),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        ),
+        onConfirm: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const QuizQuestionScreen(),
             ),
-            child: const Text(
-              'Continue',
-              style: TextStyle(
-                fontFamily: 'SF Pro',
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
+          );
+        },
+        onCancel: () {
+          Navigator.pop(context);
+          _startNewQuiz(category, questions);
+        },
       ),
     );
   }

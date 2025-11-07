@@ -7,6 +7,7 @@ import '../services/quiz_stats_service.dart';
 import '../model/quiz_stat.dart';
 import '../util/level_system.dart';
 import '../provider/theme_provider.dart';
+import '../widgets/user_avatar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -166,28 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               // Avatar
-              Container(
-                width: screenWidth * 0.14,
-                height: screenWidth * 0.14,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFEE7C9E), Color(0xFFF295B0)],
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFEE7C9E).withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: screenWidth * 0.08,
-                ),
-              ),
+              UserAvatar(size: screenWidth * 0.14)
             ],
           ),
         ),
