@@ -2,19 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screen/login_screen.dart';
 import 'provider/theme_provider.dart';
+import 'provider/quiz_state_provider.dart'; // TAMBAHKAN
 import 'services/preferences_cache.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   await PreferencesCache.initialize();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(
-        initialDarkMode: PreferencesCache.instance.isDarkMode,
-      ),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(
+            initialDarkMode: PreferencesCache.instance.isDarkMode,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => QuizStateProvider(),
+        ),
+      ],
       child: const QuibbleApp(),
     ),
   );

@@ -4,33 +4,19 @@ import 'package:quibble/screen/quiz/result_screen.dart';
 import '../../model/question_model.dart';
 import '../../widgets/result_dialog.dart';
 import '../../provider/theme_provider.dart';
+import '../../provider/quiz_state_provider.dart';
 
-class QuizQuestionScreen extends StatefulWidget {
-  final String category;
-  final List<Question> questions;
+class QuizQuestionScreen extends StatelessWidget {
+  const QuizQuestionScreen({super.key});
 
-  const QuizQuestionScreen({
-    super.key,
-    required this.category,
-    required this.questions,
-  });
-
-  @override
-  State<QuizQuestionScreen> createState() => _QuizQuestionScreenState();
-}
-
-class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
-  int currentQuestionIndex = 0;
-  int? selectedAnswerIndex;
-  int correctAnswers = 0;
-
-  void _selectAnswer(int index) {
-    if (selectedAnswerIndex == index) return;
-    setState(() => selectedAnswerIndex = index);
+  void _selectAnswer(BuildContext context, int index) {
+    context.read<QuizStateProvider>().selectAnswer(index);
   }
 
-  void _checkAnswer() {
-    if (selectedAnswerIndex == null) {
+  void _checkAnswer(BuildContext context) {
+    final quizState = context.read<QuizStateProvider>();
+
+    if (quizState.selectedAnswerIndex == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -46,13 +32,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
       return;
     }
 
-    final currentQuestion = widget.questions[currentQuestionIndex];
-    final selectedAnswer = currentQuestion.options[selectedAnswerIndex!];
-    final isCorrect = selectedAnswer == currentQuestion.correctAnswer;
-
-    if (isCorrect) {
-      correctAnswers++;
-    }
+    final isCorrect = quizState.submitAnswer();
 
     showDialog(
       context: context,
@@ -61,26 +41,24 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
         isCorrect: isCorrect,
         onNext: () {
           Navigator.pop(context);
-          _nextQuestion();
+          _nextQuestion(context);
         },
       ),
     );
   }
 
-  void _nextQuestion() {
-    if (currentQuestionIndex < widget.questions.length - 1) {
-      setState(() {
-        currentQuestionIndex++;
-        selectedAnswerIndex = null;
-      });
-    } else {
+  void _nextQuestion(BuildContext context) {
+    final quizState = context.read<QuizStateProvider>();
+    final hasNextQuestion = quizState.nextQuestion();
+
+    if (!hasNextQuestion) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => ResultScreen(
-            correctAnswers: correctAnswers,
-            totalQuestions: widget.questions.length,
-            category: widget.category,
+            correctAnswers: quizState.correctAnswers,
+            totalQuestions: quizState.totalQuestions,
+            category: quizState.category,
           ),
         ),
       );
@@ -103,8 +81,8 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
                 final screenHeight = constraints.maxHeight;
 
                 return isLandscape
-                    ? _buildLandscapeLayout(screenWidth, screenHeight, isDarkMode)
-                    : _buildPortraitLayout(screenWidth, screenHeight, isDarkMode);
+                    ? _buildLandscapeLayout(context, screenWidth, screenHeight, isDarkMode)
+                    : _buildPortraitLayout(context, screenWidth, screenHeight, isDarkMode);
               },
             );
           },
@@ -113,84 +91,93 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildPortraitLayout(double screenWidth, double screenHeight, bool isDarkMode) {
-    final currentQuestion = widget.questions[currentQuestionIndex];
+  Widget _buildPortraitLayout(BuildContext context, double screenWidth, double screenHeight, bool isDarkMode) {
+    return Consumer<QuizStateProvider>(
+      builder: (context, quizState, child) {
+        final currentQuestion = quizState.currentQuestion;
+        if (currentQuestion == null) return const SizedBox();
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: screenHeight * 0.04),
+                _buildHeader(context, screenWidth, screenHeight, isDarkMode, false, quizState),
+                SizedBox(height: screenHeight * 0.02),
+                _buildProgressBar(screenHeight, quizState),
+                SizedBox(height: screenHeight * 0.03),
+                _buildQuestionBox(currentQuestion, screenWidth, screenHeight, isDarkMode, false),
+                SizedBox(height: screenHeight * 0.03),
+                _buildAnswerOptions(context, currentQuestion, screenWidth, screenHeight, isDarkMode, false, quizState),
+                SizedBox(height: screenHeight * 0.02),
+                _buildSubmitButton(context, screenWidth, screenHeight, false),
+                SizedBox(height: screenHeight * 0.04),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLandscapeLayout(BuildContext context, double screenWidth, double screenHeight, bool isDarkMode) {
+    return Consumer<QuizStateProvider>(
+      builder: (context, quizState, child) {
+        final currentQuestion = quizState.currentQuestion;
+        if (currentQuestion == null) return const SizedBox();
+
+        return Row(
           children: [
-            SizedBox(height: screenHeight * 0.04),
-            _buildHeader(screenWidth, screenHeight, isDarkMode, false),
-            SizedBox(height: screenHeight * 0.02),
-            _buildProgressBar(screenHeight),
-            SizedBox(height: screenHeight * 0.03),
-            _buildQuestionBox(currentQuestion, screenWidth, screenHeight, isDarkMode, false),
-            SizedBox(height: screenHeight * 0.03),
-            _buildAnswerOptions(currentQuestion, screenWidth, screenHeight, isDarkMode, false),
-            SizedBox(height: screenHeight * 0.02),
-            _buildSubmitButton(screenWidth, screenHeight, false),
-            SizedBox(height: screenHeight * 0.04),
+            Expanded(
+              flex: 5,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(screenWidth * 0.04),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(context, screenWidth, screenHeight, isDarkMode, true, quizState),
+                      SizedBox(height: screenHeight * 0.03),
+                      _buildProgressBar(screenHeight, quizState),
+                      SizedBox(height: screenHeight * 0.04),
+                      _buildQuestionBox(currentQuestion, screenWidth, screenHeight, isDarkMode, true),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 5,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(screenWidth * 0.04),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: screenHeight * 0.02),
+                      _buildAnswerOptions(context, currentQuestion, screenWidth, screenHeight, isDarkMode, true, quizState),
+                      SizedBox(height: screenHeight * 0.03),
+                      _buildSubmitButton(context, screenWidth, screenHeight, true),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildLandscapeLayout(double screenWidth, double screenHeight, bool isDarkMode) {
-    final currentQuestion = widget.questions[currentQuestionIndex];
-
-    return Row(
-      children: [
-        // Left Side - Question
-        Expanded(
-          flex: 5,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(screenWidth, screenHeight, isDarkMode, true),
-                  SizedBox(height: screenHeight * 0.03),
-                  _buildProgressBar(screenHeight),
-                  SizedBox(height: screenHeight * 0.04),
-                  _buildQuestionBox(currentQuestion, screenWidth, screenHeight, isDarkMode, true),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Right Side - Options & Submit
-        Expanded(
-          flex: 5,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: screenHeight * 0.02),
-                  _buildAnswerOptions(currentQuestion, screenWidth, screenHeight, isDarkMode, true),
-                  SizedBox(height: screenHeight * 0.03),
-                  _buildSubmitButton(screenWidth, screenHeight, true),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape) {
+  Widget _buildHeader(BuildContext context, double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape, QuizStateProvider quizState) {
     return Row(
       children: [
         IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.pop(context);
+          },
           icon: Icon(
             Icons.arrow_back,
             size: isLandscape ? screenHeight * 0.06 : screenWidth * 0.06,
@@ -200,7 +187,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
         SizedBox(width: screenWidth * 0.02),
         Expanded(
           child: Text(
-            widget.category,
+            quizState.category,
             style: TextStyle(
               color: isDarkMode ? Colors.white : Colors.black,
               fontSize: isLandscape ? screenHeight * 0.05 : screenWidth * 0.047,
@@ -210,7 +197,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
           ),
         ),
         Text(
-          '${currentQuestionIndex + 1}/${widget.questions.length}',
+          '${quizState.currentQuestionIndex + 1}/${quizState.totalQuestions}',
           style: TextStyle(
             color: isDarkMode ? Colors.white70 : Colors.black,
             fontSize: isLandscape ? screenHeight * 0.038 : screenWidth * 0.035,
@@ -222,7 +209,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildProgressBar(double screenHeight) {
+  Widget _buildProgressBar(double screenHeight, QuizStateProvider quizState) {
     return Container(
       width: double.infinity,
       height: screenHeight * 0.02,
@@ -232,7 +219,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
       ),
       child: FractionallySizedBox(
         alignment: Alignment.centerLeft,
-        widthFactor: (currentQuestionIndex + 1) / widget.questions.length,
+        widthFactor: quizState.getProgress(),
         child: Container(
           decoration: BoxDecoration(
             color: const Color(0xFF8F9ABA),
@@ -268,15 +255,15 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildAnswerOptions(Question question, double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape) {
+  Widget _buildAnswerOptions(BuildContext context, Question question, double screenWidth, double screenHeight, bool isDarkMode, bool isLandscape, QuizStateProvider quizState) {
     return Column(
       children: List.generate(
         question.options.length,
             (index) => _AnswerOption(
-          key: ValueKey('${currentQuestionIndex}_$index'),
+          key: ValueKey('${quizState.currentQuestionIndex}_$index'),
           option: question.options[index],
-          isSelected: selectedAnswerIndex == index,
-          onTap: () => _selectAnswer(index),
+          isSelected: quizState.selectedAnswerIndex == index,
+          onTap: () => _selectAnswer(context, index),
           screenWidth: screenWidth,
           screenHeight: screenHeight,
           isDarkMode: isDarkMode,
@@ -286,7 +273,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
     );
   }
 
-  Widget _buildSubmitButton(double screenWidth, double screenHeight, bool isLandscape) {
+  Widget _buildSubmitButton(BuildContext context, double screenWidth, double screenHeight, bool isLandscape) {
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -296,7 +283,7 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
         child: SizedBox(
           width: isLandscape ? screenWidth * 0.25 : screenWidth * 0.35,
           child: ElevatedButton(
-            onPressed: _checkAnswer,
+            onPressed: () => _checkAnswer(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEE7C9E),
               foregroundColor: Colors.white,

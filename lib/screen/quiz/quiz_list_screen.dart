@@ -7,6 +7,7 @@ import 'package:quibble/screen/quiz/quiz_screen.dart';
 import '../../widgets/navigation_bar.dart';
 import '../../widgets/list_quiz.dart';
 import '../../provider/theme_provider.dart';
+import '../../provider/quiz_state_provider.dart';
 
 class QuizListScreen extends StatefulWidget {
   const QuizListScreen({super.key});
@@ -49,7 +50,6 @@ class _QuizListScreenState extends State<QuizListScreen> {
       ),
     );
 
-
     _preloadImagesAsync();
   }
 
@@ -60,6 +60,7 @@ class _QuizListScreenState extends State<QuizListScreen> {
       try {
         await Future.wait([
           precacheImage(const AssetImage('assets/images/biblechara.png'), context),
+          precacheImage(const AssetImage('assets/images/bibleverse.png'), context),
           precacheImage(const AssetImage('assets/images/bibleverse.png'), context),
           precacheImage(const AssetImage('assets/images/biblevent.png'), context),
         ]);
@@ -76,14 +77,142 @@ class _QuizListScreenState extends State<QuizListScreen> {
     });
   }
 
+
   void _navigateToQuiz(String category, dynamic questions) async {
-    await Navigator.push(
+    final quizProvider = context.read<QuizStateProvider>();
+
+
+    final hasSaved = await quizProvider.hasSavedQuiz();
+
+    if (hasSaved && mounted) {
+
+      await quizProvider.loadSavedQuiz();
+      final savedCategory = quizProvider.category;
+
+
+      if (savedCategory == category) {
+        _showContinueOrRestartDialog(category, questions);
+        return;
+      }
+    }
+
+    _startNewQuiz(category, questions);
+  }
+
+  void _showContinueOrRestartDialog(String category, dynamic questions) {
+    final isDarkMode = context.read<ThemeProvider>().isDarkMode;
+    final quizProvider = context.read<QuizStateProvider>();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.help_outline,
+              color: const Color(0xFFEE7C9E),
+              size: 28,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Continue Quiz?',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                  fontFamily: 'SF Pro',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You have an unfinished "$category" quiz.',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white70 : Colors.black87,
+                fontFamily: 'SF Pro',
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Question ${quizProvider.currentQuestionIndex + 1} of ${quizProvider.totalQuestions}',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white60 : Colors.black54,
+                fontFamily: 'SF Pro',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _startNewQuiz(category, questions);
+            },
+            child: Text(
+              'Start Over',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white70 : Colors.grey[700],
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Quiz sudah di-load, langsung navigate
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const QuizQuestionScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEE7C9E),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text(
+              'Continue',
+              style: TextStyle(
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startNewQuiz(String category, dynamic questions) {
+    context.read<QuizStateProvider>().startQuiz(
+      category: category,
+      questions: questions,
+    );
+
+    Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QuizQuestionScreen(
-          category: category,
-          questions: questions,
-        ),
+        builder: (context) => const QuizQuestionScreen(),
       ),
     );
   }
@@ -106,7 +235,6 @@ class _QuizListScreenState extends State<QuizListScreen> {
           decoration: isDarkMode ? _darkDecoration : _lightDecoration,
           child: Stack(
             children: [
-              // Main Content
               _buildMainContent(
                 screenWidth,
                 screenHeight,
@@ -114,8 +242,6 @@ class _QuizListScreenState extends State<QuizListScreen> {
                 isDarkMode,
                 navBarHeight,
               ),
-
-              // Bottom Navigation Bar
               const Positioned(
                 left: 0,
                 right: 0,
@@ -149,13 +275,8 @@ class _QuizListScreenState extends State<QuizListScreen> {
         child: Column(
           children: [
             SizedBox(height: topSpacing),
-
-            // Header Section
             _buildHeader(screenWidth, screenHeight, isLandscape, isDarkMode),
-
             SizedBox(height: contentSpacing),
-
-            // Quiz Categories
             Padding(
               padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               child: Column(
@@ -226,7 +347,6 @@ class _QuizListScreenState extends State<QuizListScreen> {
 
     return Column(
       children: [
-        // Quiz Icon
         Container(
           width: headerIconSize,
           height: headerIconSize,
@@ -248,7 +368,6 @@ class _QuizListScreenState extends State<QuizListScreen> {
           ),
         ),
         SizedBox(height: isLandscape ? screenHeight * 0.025 : screenHeight * 0.02),
-        // Title
         Text(
           'Bible Quiz',
           style: TextStyle(
@@ -260,7 +379,6 @@ class _QuizListScreenState extends State<QuizListScreen> {
           ),
         ),
         SizedBox(height: isLandscape ? screenHeight * 0.012 : screenHeight * 0.008),
-        // Subtitle
         Text(
           'Test your knowledge',
           style: TextStyle(

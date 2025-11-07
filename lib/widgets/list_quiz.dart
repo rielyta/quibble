@@ -23,7 +23,7 @@ class QuizCard extends StatelessWidget {
 
     final baseSize = size.shortestSide;
 
-    final cardHeight = isLandscape ? baseSize * 0.22 : baseSize * 0.28;
+    final cardHeight = isLandscape ? baseSize * 0.24 : baseSize * 0.30;
     final imageSize = baseSize * 0.20;
     final titleFontSize = baseSize * 0.05;
     final subtitleFontSize = baseSize * 0.035;
@@ -123,38 +123,43 @@ class QuizCard extends StatelessWidget {
 
                   SizedBox(width: spacingMedium),
 
-                  // Text Content
+                  // Text Content - Made flexible to prevent overflow
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: titleFontSize,
-                            fontFamily: 'SF Pro',
-                            fontWeight: FontWeight.w700,
-                            height: 1.2,
-                            letterSpacing: 0.3,
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: titleFontSize,
+                              fontFamily: 'SF Pro',
+                              fontWeight: FontWeight.w700,
+                              height: 1.1,
+                              letterSpacing: 0.3,
+                            ),
+                            maxLines: isLandscape ? 1 : 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: isLandscape ? 1 : 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: spacingSmall),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: subtitleFontSize,
-                            fontFamily: 'SF Pro',
-                            fontWeight: FontWeight.w400,
-                            height: 1.3,
-                            letterSpacing: 0.2,
+                        Flexible(
+                          child: Text(
+                            subtitle,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: subtitleFontSize,
+                              fontFamily: 'SF Pro',
+                              fontWeight: FontWeight.w400,
+                              height: 1.2,
+                              letterSpacing: 0.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
